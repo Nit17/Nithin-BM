@@ -104,3 +104,4 @@ if __name__ == "__main__":
     print("\n11) unique_words keys (normalized) ->", list(unique_words.keys()))
 
     print("\n12) labels 0..5 ->", labels)
+
