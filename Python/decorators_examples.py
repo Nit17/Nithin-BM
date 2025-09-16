@@ -151,3 +151,4 @@ if __name__ == "__main__":
     print("   cached_property value 2nd ->", r.value)
 
     print("\n5) scale_result(10) * base_value() ->", base_value())
+
