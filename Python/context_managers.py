@@ -14,7 +14,7 @@ from __future__ import annotations
 import contextlib
 import io
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass 
 from typing import Optional
 
 # 1) Class-based context manager
@@ -130,3 +130,4 @@ if __name__ == "__main__":
     with temp_env("DEMO_ENV", "123"):
         print("   inside: DEMO_ENV=", os.environ.get("DEMO_ENV"))
     print("   after:  DEMO_ENV=", os.environ.get("DEMO_ENV"))
+
