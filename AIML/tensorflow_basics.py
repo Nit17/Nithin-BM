@@ -65,12 +65,12 @@ def train_and_save(tf):
     history = model.fit(ds, epochs=3, verbose=0)
     print("Final metrics:", {k: float(v[-1]) for k, v in history.history.items()})
 
-    out_dir = "./out-tf-basics"
-    model.save(out_dir)
-    print("Saved model to:", out_dir)
+    out_file = "./out-tf-basics.keras"  # Keras 3 native format requires .keras extension
+    model.save(out_file)
+    print("Saved model to:", out_file)
 
     print("\nLoading model back and evaluating")
-    loaded = tf.keras.models.load_model(out_dir)
+    loaded = tf.keras.models.load_model(out_file)
     loss, mae = loaded.evaluate(ds, verbose=0)
     print({"loss": float(loss), "mae": float(mae)})
 
