@@ -16,32 +16,48 @@ A personal Python learning repo with bite-sized, runnable examples.
   - `finetune.py` – Fine-tuning overview (Transformers, LoRA/QLoRA, cloud)
   - `tensorflow_basics.py` – TF/Keras basics: tensors, small model, save/load
 
+## Concepts (Theory + Try it)
+
+Quick links to each lesson with a one-line theory summary and how to run.
+
+- Palindromes – Normalization choices; slicing vs two-pointer trade-offs.
+  - File: `Python/palindromes.py`
+  - Run: `./.venv/bin/python Python/palindromes.py`
+
+- Lambdas – Tiny, anonymous single-expression functions; prefer `def` for anything non-trivial.
+  - File: `Python/lambda_examples.py`
+  - Run: `./.venv/bin/python Python/lambda_examples.py`
+
+- Generators & Iterators – Lazy iteration; build memory-efficient pipelines with `yield` and `itertools`.
+  - File: `Python/generators_iterators.py`
+  - Run: `./.venv/bin/python Python/generators_iterators.py`
+
+- Decorators – Wrap callables to add behavior; preserve metadata with `functools.wraps`.
+  - File: `Python/decorators_examples.py`
+  - Run: `./.venv/bin/python Python/decorators_examples.py`
+
+- Context Managers – Ensure setup/teardown with `with`; use `__enter__/__exit__` or `@contextmanager`.
+  - File: `Python/context_managers.py`
+  - Run: `./.venv/bin/python Python/context_managers.py`
+
+- Asyncio Basics – Single-threaded I/O concurrency with `async`/`await`; offload CPU-bound work.
+  - File: `Python/asyncio_basics.py`
+  - Run: `./.venv/bin/python Python/asyncio_basics.py`
+
+- Hash maps (dicts) – Hashing, hashable keys, order guarantee, dynamic views, common pitfalls.
+  - File: `Python/hashmaps_dicts.py`
+  - Run: `./.venv/bin/python Python/hashmaps_dicts.py`
+
+- Fine-tuning (NLP/LLMs) – When to fine-tune vs RAG/prompting; PEFT (LoRA/QLoRA) trade-offs and risks.
+  - File: `AIML/finetune.py`
+  - Run: `./.venv/bin/python AIML/finetune.py`
+
+- TensorFlow Basics – Tensors, Keras models, `tf.data` pipelines; save/load with `.keras` format.
+  - File: `AIML/tensorflow_basics.py`
+  - Run: `./.venv312/bin/python AIML/tensorflow_basics.py`
+
 ## Environments
 
 Two virtual environments exist:
 - `.venv/` – General Python work (3.13)
 - `.venv312/` – TensorFlow-compatible environment (3.12)
-
-Use the correct interpreter when running files (see commands below).
-
-## How to run
-
-Examples (adjust if your shell is different):
-
-- Python examples:
-  - `./.venv/bin/python Python/palindromes.py`
-  - `./.venv/bin/python Python/lambda_examples.py`
-  - `./.venv/bin/python Python/generators_iterators.py`
-  - `./.venv/bin/python Python/decorators_examples.py`
-  - `./.venv/bin/python Python/context_managers.py`
-  - `./.venv/bin/python Python/asyncio_basics.py`
-
-- AI/ML examples:
-  - `./.venv/bin/python AIML/finetune.py` (prints guidance; no heavy deps required)
-  - `./.venv312/bin/python AIML/tensorflow_basics.py` (requires TensorFlow)
-
-## Notes
-
-- Git identity for this repo is set to `Nit17 <nithinbm17@gmail.com>`.
-- Large artifacts and generated outputs are ignored via `.gitignore` (e.g., `.keras`, `out-*`).
-- If you want a different layout (e.g., `src/`), say the word and I’ll migrate files and update imports.
