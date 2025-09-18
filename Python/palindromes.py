@@ -1,6 +1,15 @@
 """
 Palindromes in Python: four approaches and when to use them.
 
+Theory (read this first):
+- A palindrome reads the same forward and backward. Depending on context you may ignore
+    case, spaces, and punctuation (normalization) — make this explicit in your function.
+- Slicing and reversed() both build a reversed copy; they are simple and fast for strings
+    that fit comfortably in memory.
+- Two-pointer scans avoid allocating new strings and can skip non-alphanumerics on the fly,
+    which helps for large inputs or streaming scenarios.
+- Recursive solutions are elegant but risk hitting recursion depth for long strings.
+
 Methods provided:
 - is_palindrome_slice: Fast, concise; great for small/medium strings. Optional normalization.
 - is_palindrome_reversed: Similar to slicing, explicit reversed(); useful when teaching iterators.

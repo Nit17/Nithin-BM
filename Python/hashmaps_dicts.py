@@ -1,6 +1,21 @@
 """
 Hash maps in Python (dict) – practical, runnable examples.
 
+Theory (read this first):
+- A dict is a hash map: it hashes the key to find a bucket, so lookups/inserts/deletes are
+    O(1) on average. Collisions are handled internally; pathological worst case can be O(n),
+    but Python includes randomization and a robust table design to avoid easy collisions.
+- Keys must be hashable: their hash value must not change during their lifetime and must be
+    consistent with equality. Immutable built-ins like str, int, float, bytes, and tuples of
+    immutables are hashable. Lists/dicts/sets are unhashable. Don’t mutate objects used as
+    keys in a way that changes their equality/hash.
+- Insertion order is preserved (a language guarantee since Python 3.7). That means iterating
+    a dict returns keys in the order they were first inserted, which is useful for predictable
+    output and simple ordered algorithms.
+- Dict views (keys/values/items) are dynamic: they reflect later mutations of the dict.
+- Common pitfalls: using a mutable as a key; relying on floating-point NaN (NaN != NaN);
+    forgetting that later assignments overwrite earlier values for the same key.
+
 What you'll learn:
 - Core dict operations: create, access, update, delete, membership
 - Iteration patterns and dict views (keys/values/items)
@@ -187,4 +202,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-    
+

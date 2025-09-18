@@ -1,6 +1,15 @@
 """
 Decorators in Python: wrap functions/classes to add behavior without changing their callers.
 
+Theory (read this first):
+- A decorator is just a callable that takes a function/class and returns a replacement.
+    Use @functools.wraps to preserve the original’s metadata (name, docstring, annotations).
+- Ordering matters: @a above @b means a(b(f)). Keep side effects (I/O, sleeping) inside
+    the wrapper, not at import-time. Parameterized decorators are factories returning the
+    actual decorator.
+- Common use cases: logging, timing, caching, retry logic, validation, authorization,
+    and memoization. Keep wrappers thin and predictable.
+
 This file includes:
 - Basic function decorator (logging)
 - Timing decorator

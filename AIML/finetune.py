@@ -1,11 +1,20 @@
 """
 Fine-tuning overview: local models and other options
 
+Theory (read this first):
+- Fine-tuning specializes a pre-trained model on your dataset. Choose between:
+    - Prompting/RAG: no training; fastest iteration; great when context fits in the prompt.
+    - Full fine-tune: update all weights; most flexible, but costly and hardware-heavy.
+    - PEFT (LoRA/QLoRA): train small adapters while freezing most weights; strong results with
+        far less compute and memory.
+- Risks: overfitting, catastrophic forgetting, license/usage constraints on base models,
+    and data leakage. Always validate on held-out data; monitor for regressions.
+
 This script is a safe, runnable guide that explains:
 - What is fine-tuning and when to use it vs prompting/RAG
 - Local fine-tuning with Hugging Face Transformers
-  - Vanilla Trainer (e.g., text classification)
-  - LoRA / QLoRA for parameter-efficient fine-tuning of LLMs
+    - Vanilla Trainer (e.g., text classification)
+    - LoRA / QLoRA for parameter-efficient fine-tuning of LLMs
 - Alternatives: cloud-managed fine-tuning and hosting options
 - Practical tips: dataset prep, hyperparameters, eval, and exporting
 

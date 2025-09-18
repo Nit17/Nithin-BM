@@ -1,6 +1,12 @@
 """
 TensorFlow Basics: a gentle, runnable intro
 
+Theory (read this first):
+- TensorFlow represents data as Tensors (multidimensional arrays) and composes operations
+    into compute graphs. Keras provides a high-level API for building and training models.
+- Use tf.data to build efficient input pipelines (batching, shuffling, prefetching). Train
+    with model.fit, then save models in the native .keras format in Keras 3.
+
 This script teaches:
 - Importing TensorFlow safely (prints guidance if TF is missing)
 - Working with Tensors and operations

@@ -1,6 +1,13 @@
 """
 Lambda functions in Python: quick, anonymous, single-expression functions.
 
+Theory (read this first):
+- A lambda creates a tiny, unnamed function defined by a single expression. Use them when
+    passing a short callback (key functions, predicates) improves readability.
+- Prefer def for anything non-trivial: multiple expressions, statements (if/for/try), or
+    when you’ll reuse the function. Named functions are easier to debug and document.
+- Lambdas capture variables by reference; to freeze a value at definition time, use a default
+    argument (lambda x, captured=val: ...).
 """
 from __future__ import annotations
 from functools import partial

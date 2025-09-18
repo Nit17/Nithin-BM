@@ -1,6 +1,14 @@
 """
 Generators & Iterators in Python
 
+Theory (read this first):
+- Iterators provide a uniform way to consume sequences lazily via next(). Generators are a
+    concise way to write iterators using the yield keyword.
+- Laziness means values are produced on demand — saving memory and enabling infinite or
+    very large streams. Compose filters/maps without materializing intermediate lists.
+- Use itertools for building pipelines (islice, chain, groupby, etc.). Prefer generator
+    functions/expressions over custom iterator classes unless you need fine control.
+
 This script shows:
 - How to write generator functions with yield
 - Generator expressions vs list comprehensions

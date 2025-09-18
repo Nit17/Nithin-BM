@@ -1,6 +1,14 @@
 """
 Context Managers in Python
 
+Theory (read this first):
+- Context managers guarantee setup/teardown via the with-statement protocol: __enter__ runs
+    before the block, __exit__ runs even if an exception occurs. This ensures resources like
+    files, locks, and network connections are released safely.
+- Use class-based context managers when you need stateful objects; use @contextmanager when
+    a simple try/finally suffices. For dynamic sets of contexts, ExitStack composes multiple
+    managers and unwinds them correctly.
+
 This script shows:
 - Class-based context managers (__enter__/__exit__)
 - @contextmanager function style

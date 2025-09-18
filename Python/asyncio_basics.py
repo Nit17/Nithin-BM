@@ -1,6 +1,12 @@
 """
 Asyncio Basics: practical concurrency with async/await
 
+Theory (read this first):
+- Asyncio provides single-threaded concurrency for I/O-bound tasks. While one task awaits
+    I/O, the event loop can run other tasks. Use async def/await to express suspension points.
+- It’s not for CPU-bound work — offload those to threads/processes (e.g., asyncio.to_thread)
+    or use multiprocessing. Use Semaphore/TaskGroup for structured, safe concurrency.
+
 Covers:
 - Defining async functions and running them
 - Concurrency with asyncio.gather
