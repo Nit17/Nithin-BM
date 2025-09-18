@@ -48,6 +48,10 @@ Quick links to each lesson with a one-line theory summary and how to run.
   - File: `Python/hashmaps_dicts.py`
   - Run: `./.venv/bin/python Python/hashmaps_dicts.py`
 
+- Pattern Matching – Structural matching (match/case) for literals, sequences, mappings, classes, guards.
+  - File: `Python/pattern_matching.py`
+  - Run: `./.venv/bin/python Python/pattern_matching.py`
+
 - Fine-tuning (NLP/LLMs) – When to fine-tune vs RAG/prompting; PEFT (LoRA/QLoRA) trade-offs and risks.
   - File: `AIML/finetune.py`
   - Run: `./.venv/bin/python AIML/finetune.py`
