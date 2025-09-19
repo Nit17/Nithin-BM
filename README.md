@@ -52,6 +52,10 @@ Quick links to each lesson with a one-line theory summary and how to run.
   - File: `Python/pattern_matching.py`
   - Run: `./.venv/bin/python Python/pattern_matching.py`
 
+- Exceptions & Error Handling – Specific vs broad catches, EAFP vs LBYL, chaining, else/finally.
+  - File: `Python/exceptions_handling.py`
+  - Run: `./.venv/bin/python Python/exceptions_handling.py`
+
 - Fine-tuning (NLP/LLMs) – When to fine-tune vs RAG/prompting; PEFT (LoRA/QLoRA) trade-offs and risks.
   - File: `AIML/finetune.py`
   - Run: `./.venv/bin/python AIML/finetune.py`
