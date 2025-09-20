@@ -32,6 +32,10 @@ Quick links to each lesson with a one-line theory summary and how to run.
   - File: `Python/generators_iterators.py`
   - Run: `./.venv/bin/python Python/generators_iterators.py`
 
+- Files & Pathlib – Prefer pathlib; safe I/O with context managers; JSON/CSV; atomic writes.
+  - File: `Python/files_pathlib.py`
+  - Run: `./.venv/bin/python Python/files_pathlib.py`
+
 - Decorators – Wrap callables to add behavior; preserve metadata with `functools.wraps`.
   - File: `Python/decorators_examples.py`
   - Run: `./.venv/bin/python Python/decorators_examples.py`
