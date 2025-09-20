@@ -4,6 +4,18 @@
 
 ### Foundational GenAI
 - Differentiate between Generative AI and Discriminative AI models with examples.
+
+- Generative (models p(x) or p(x, y)): learn how data is distributed and can sample new data. Objective: maximize likelihood (e.g., cross-entropy), diffusion loss, adversarial loss.
+    - Examples: GPT/LLaMA (text generation), Stable Diffusion/DALL·E (images), VAEs, GANs.
+    - Use cases: text/image/audio/code generation, data augmentation, simulation.
+    - Pros: leverages unlabeled data, can generate and score sequences; Cons: slower inference, harder evaluation.
+  - Discriminative (models p(y|x) or direct decision boundary f(x)→y): predict labels/scores given inputs. Objective: minimize classification/regression loss.
+    - Examples: Logistic Regression, SVM, XGBoost/Random Forest, ResNet classifier, BERT/DeBERTa classifiers, ColBERT/BERT re-rankers.
+    - Use cases: classification, NER, QA span extraction, ranking/retrieval, toxicity/safety filters.
+    - Pros: efficient and often higher task accuracy with labeled data; Cons: needs labels, cannot generate samples.
+  - In RAG: the generator is the LLM; discriminators include retrievers, re-rankers, and safety/toxicity classifiers.
+  - Hybrids: generative LLMs used as discriminators via log-likelihood scoring; pretrain generative, then add a discriminative head for classification.
+  
 - What are transformers? How do self-attention and multi-head attention work?
 - Explain tokenization in LLMs. How do Byte Pair Encoding (BPE) and SentencePiece differ?
 - What are pre-training, fine-tuning, and instruction-tuning in LLMs?
