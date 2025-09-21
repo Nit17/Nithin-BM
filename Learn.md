@@ -29,6 +29,23 @@
   - Notes: O(n^2) time/memory in sequence length n; long-context variants use sparse/linear attention.
 
 - Explain tokenization in LLMs. How do Byte Pair Encoding (BPE) and SentencePiece differ?
+
+- Explain tokenization in LLMs. How do Byte Pair Encoding (BPE) and SentencePiece differ?
+  - Tokenization: converts text to tokens (subwords) that models process. Goals: handle any input (no OOV), keep vocab small, and keep sequence lengths reasonable.
+  - BPE (Byte Pair Encoding):
+    - Greedy merges of most frequent symbol pairs until vocab size is reached.
+    - Often uses whitespace pre-tokenization; GPT-2/RoBERTa use byte-level BPE (operates on bytes 0–255) to avoid OOV entirely.
+    - Deterministic segmentation; fast; can over-fragment rare words/morphemes.
+  - SentencePiece:
+    - Toolkit that trains directly on raw text without external pre-tokenization; encodes spaces with a meta symbol (e.g., ▁).
+    - Supports two algorithms: Unigram LM (common: T5, LLaMA) and BPE; Unigram selects an optimal subword set via likelihood and enables subword regularization (stochastic sampling) for robustness.
+    - Language-agnostic, good for languages without spaces; stable handling of mixed scripts.
+  - Differences in practice:
+    - Pre-tokenization: BPE often relies on whitespace; SentencePiece does not (handles spaces internally).
+    - Algorithm: BPE = greedy merges; SentencePiece Unigram = probabilistic model with optional sampling.
+    - Coverage: Byte-level BPE guarantees coverage of any byte; SentencePiece covers Unicode with learned pieces and byte-fallback if enabled.
+    - Trade-offs: BPE is simple/deterministic; Unigram can yield fewer tokens and better generalization, especially multilingual.
+
 - What are pre-training, fine-tuning, and instruction-tuning in LLMs?
 - What are embeddings, and how do they help in semantic search and RAG?
 
