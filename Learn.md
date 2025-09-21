@@ -133,6 +133,19 @@
     - Not comparable across different tokenizations or heavy prompt formatting.
 
 - Explain LoRA (Low-Rank Adaptation) and why it’s efficient for fine-tuning.
+
+- Define perplexity. Why is it used to evaluate LLMs?
+  - Definition: Perplexity (PPL) = exp(cross-entropy per token). For tokens x₁..x_N, PPL = exp(−(1/N) Σ log p(x_t | x_<t)). Lower is better.
+  - Intuition: average branching factor—the effective number of choices per next token.
+  - Why used:
+    - Aligned with the LM training objective; sensitive to modeling gains.
+    - Simple offline metric; track train vs. val to detect overfitting and domain shift.
+    - Comparable only when dataset and tokenizer are identical.
+  - Practical notes:
+    - Report tokenizer, dataset, and whether per-token or per-word PPL.
+    - Weak correlation with instruction-following/helpfulness; use task metrics or human eval for those.
+    - Not comparable across different tokenizations or heavy prompt formatting.
+
 - How does parameter-efficient fine-tuning (PEFT) differ from full fine-tuning?
 
 ### RAG & AI Agents
