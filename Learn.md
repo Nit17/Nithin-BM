@@ -100,6 +100,24 @@
 
 - What is the difference between causal (decoder-only) vs. seq2seq (encoder-decoder) LLMs?
 
+- What is the difference between causal (decoder-only) vs. seq2seq (encoder-decoder) LLMs?
+  - Architecture:
+    - Decoder-only: single stack with causal self-attention (no lookahead). Condition on left context only. Examples: GPT, LLaMA, Mistral.
+    - Seq2seq: encoder (bidirectional self-attention) + decoder (causal self-attention + cross-attention to encoder). Examples: T5/FLAN-T5, BART, mT5.
+  - Training objective:
+    - Decoder-only: next-token prediction on concatenated text (causal LM).
+    - Seq2seq: map input→output (supervised) or denoising (e.g., span corruption in T5), training decoder to generate conditioned on encoder outputs.
+  - Strengths:
+    - Decoder-only: excels at open-ended generation, chat, long-context prompting, simple serving; very scalable.
+    - Seq2seq: strong at input→output tasks (translation, summarization, structured generation) due to full bidirectional encoding of the source.
+  - Trade-offs:
+    - Decoder-only: all conditioning must fit in the prompt; longer prompts increase cost; no explicit cross-attention memory.
+    - Seq2seq: extra encode pass + cross-attention adds latency/params, but gives stronger conditioning and shorter prompts.
+  - When to use:
+    - Use decoder-only for chat/agent/RAG with long prompts and general generation.
+    - Use seq2seq for supervised transformations where the output tightly depends on an input document.
+
+
 - Define perplexity. Why is it used to evaluate LLMs?
 - Explain LoRA (Low-Rank Adaptation) and why it’s efficient for fine-tuning.
 - How does parameter-efficient fine-tuning (PEFT) differ from full fine-tuning?
