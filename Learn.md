@@ -168,7 +168,17 @@
 
 ### RAG & AI Agents
 - What problem does RAG solve compared to plain prompting?
+
+- What problem does RAG solve compared to plain prompting?
+  - Problem with plain prompting: LLMs lack up-to-date/domain-specific facts; hallucinate when info isn’t in weights; limited context window; no citations or access control.
+  - RAG solution: retrieve top‑k relevant chunks from external sources at query time and ground the generation in them.
+    - Benefits: fresher knowledge, fewer hallucinations, shorter prompts than pasting whole docs, citations/traceability, scoped access (per user/tenant).
+  - When to use: dynamic or proprietary corpora; compliance/audit needs; per-user knowledge partitions.
+  - Trade-offs: retrieval quality becomes the bottleneck (chunking, embeddings, re-ranking); added latency/cost; prompt injection from retrieved text; must evaluate recall and faithfulness.
+
 - Explain chunking strategies in RAG pipelines. Trade-offs of large vs. small chunks.
+
+
 - How does multi-vector (hybrid) search improve retrieval over embeddings-only search?
 - Describe the role of re-ranking models (BERT, ColBERT, NeMo Retriever) in RAG.
 - What is an AI Agent? How do frameworks like CrewAI, LangGraph, AutoGen differ?
