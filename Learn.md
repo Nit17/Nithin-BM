@@ -47,6 +47,16 @@
     - Trade-offs: BPE is simple/deterministic; Unigram can yield fewer tokens and better generalization, especially multilingual.
 
 - What are pre-training, fine-tuning, and instruction-tuning in LLMs?
+  - Pre-training (self-supervised): train on massive unlabeled corpora with next-token prediction (causal LM) or masked LM. Outcome: broad language/world knowledge and general skills. Examples: GPT/LLaMA pre-trained on web/books/code.
+  - Continual/domain-adaptive pre-training (optional): keep pretraining on in-domain text with the same objective to adapt to a new domain (legal/biomed/code) before task tuning.
+  - Supervised fine-tuning (SFT): update the model on a narrower task/domain using labeled or synthetic data. Objectives: task cross-entropy; methods: full FT or PEFT (LoRA/adapters). Examples: fine-tune for code completion or NER on company data.
+  - Instruction-tuning: SFT on instruction–response pairs so the model follows natural-language instructions (multi-task). Often followed by preference tuning (RLHF/DPO) to align tone, helpfulness, and safety.
+  - When to use:
+    - Pre-train: only if you control huge compute/data.
+    - Continual pre-train: large domain shift with plenty of unlabeled text.
+    - Fine-tune: specific tasks/domains with labeled data.
+    - Instruction + preference tuning: change behavior/formatting and alignment.
+
 - What are embeddings, and how do they help in semantic search and RAG?
 
 ### LLM Mechanics
