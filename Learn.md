@@ -82,6 +82,22 @@
 
 ### LLM Mechanics
 - Explain how positional encoding works in transformer models.
+
+- Explain how positional encoding works in transformer models.
+
+  - Why needed: self-attention is order-agnostic; positional info injects sequence order.
+  - Absolute (sinusoidal): PE[pos,2i] = sin(pos/10000^(2i/d)), PE[pos,2i+1] = cos(...). Added to token embeddings (often only at the input). No params; good extrapolation.
+  - Learned absolute: trainable position vectors up to a max length. Simple and strong, but limited extrapolation unless extended/interpolated.
+  - Relative positions:
+    - Shaw et al.: add learned bias a(i−j) to attention logits (picks up relative offsets).
+    - RoPE (rotary): rotate Q,K in 2D planes by angle θ(pos), making attention depend on relative offsets; strong long-context behavior.
+    - ALiBi: add head-specific linear bias m_h·(i−j) to logits; cheap and extrapolates.
+  - Practical notes:
+    - Apply positions once at input (common in decoder-only) or per layer (some encoders).
+    - Use padding/causal masks; positions count only real tokens.
+    - Long-context: RoPE scaling/NTK-aware interpolation, position shifting.
+    - 2D/axial encodings for images; time-axis encodings for audio.
+
 - What is the difference between causal (decoder-only) vs. seq2seq (encoder-decoder) LLMs?
 - Define perplexity. Why is it used to evaluate LLMs?
 - Explain LoRA (Low-Rank Adaptation) and why it’s efficient for fine-tuning.
