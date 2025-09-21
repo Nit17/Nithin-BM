@@ -178,8 +178,32 @@
 
 - Explain chunking strategies in RAG pipelines. Trade-offs of large vs. small chunks.
 
+- Explain chunking strategies in RAG pipelines. Trade-offs of large vs. small chunks.
+  - Goal: keep enough local context for answering while maximizing retrieval recall.
+  - Common strategies:
+    - Fixed-length token chunks with overlap (sliding window). Simple, fast, predictable.
+    - Natural-boundary chunking: split by sentences/paragraphs/headers (Markdown/HTML/PDF), keep headings with the chunk.
+    - Structure-aware: keep tables as whole units; code-aware splits by function/class/file blocks; notebooks by cell.
+    - Hierarchical (parent-child): big parent sections (e.g., 800–1500 tokens) plus overlapping leaf chunks (150–400) for retrieval; fetch parent for context.
+    - Query-time expansion: after retrieving a leaf, also pull left/right neighbors or the parent; optional contextual compression (LLM filters/summarizes to the query).
+  - Large vs small chunks:
+    - Large (400–1200 tok): + more context, fewer boundary breaks, better multi-sentence reasoning; − diluted embeddings, lower recall for narrow queries, higher prompt cost, risk of off-topic content.
+    - Small (100–300 tok): + precise matches, higher recall, granular citations; − fragmented context, may require neighbor fetching/re-ranking, larger index and latency.
+  - Overlap:
+    - Use 10–25% overlap (e.g., 32–128 tok). Too little → boundary loss; too much → duplication, higher cost.
+  - Practical defaults (start here, then tune):
+    - Prose/docs: 200–400 tok, 10–20% overlap; preserve headings in each chunk.
+    - FAQs/emails: 80–200 tok; sentence-aware splitting.
+    - Code: 50–120 tok but prefer AST/function-level chunks; include signature/imports.
+    - Tables: keep intact; add header row and caption to text representation.
+  - Tips:
+    - Store rich metadata (title → section path → page → offsets); stable chunk IDs for dedup/versioning.
+    - Evaluate with recall@k and answer faithfulness; grid-search chunk size/overlap.
+    - Use re-rankers (cross-encoder) or multi-vector methods when using larger chunks.
 
 - How does multi-vector (hybrid) search improve retrieval over embeddings-only search?
+
+
 - Describe the role of re-ranking models (BERT, ColBERT, NeMo Retriever) in RAG.
 - What is an AI Agent? How do frameworks like CrewAI, LangGraph, AutoGen differ?
 - Explain tool use (function calling) in LLMs. How does it enable agents?
