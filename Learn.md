@@ -17,6 +17,17 @@
   - Hybrids: generative LLMs used as discriminators via log-likelihood scoring; pretrain generative, then add a discriminative head for classification.
   
 - What are transformers? How do self-attention and multi-head attention work?
+  - Transformers: attention-centric sequence models that replace recurrence with parallel attention. Layers = [Self-Attention → Feed-Forward] with residual connections + LayerNorm; add positional info (sinusoidal, learned, or RoPE). Architectures: encoder–decoder (seq2seq), encoder-only (BERT), decoder-only (GPT).
+  - Self-attention (per layer): for tokens X ∈ R^{n×d_model}
+    - Compute projections: `Q = X W_Q`, `K = X W_K`, `V = X W_V`
+    - Weights: `A = softmax((Q K^T) / sqrt(d_k) + mask)`; Output: `A V`
+    - Use padding masks; decoder uses a causal mask (no peeking at future tokens).
+  - Multi-head attention: run h attention “heads” in parallel
+    - For each head i: `head_i = softmax((Q_i K_i^T)/sqrt(d_k)) V_i` with its own `W_Q^i, W_K^i, W_V^i`
+    - Concatenate and project: `Concat(head_1..head_h) W_O`
+    - Benefit: different heads capture different relations (positions, syntax, long-range deps).
+  - Notes: O(n^2) time/memory in sequence length n; long-context variants use sparse/linear attention.
+
 - Explain tokenization in LLMs. How do Byte Pair Encoding (BPE) and SentencePiece differ?
 - What are pre-training, fine-tuning, and instruction-tuning in LLMs?
 - What are embeddings, and how do they help in semantic search and RAG?
