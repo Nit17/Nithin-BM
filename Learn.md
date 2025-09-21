@@ -81,7 +81,7 @@
 
 
 ### LLM Mechanics
-- Explain how positional encoding works in transformer models.
+
 
 - Explain how positional encoding works in transformer models.
 
@@ -99,6 +99,7 @@
     - 2D/axial encodings for images; time-axis encodings for audio.
 
 - What is the difference between causal (decoder-only) vs. seq2seq (encoder-decoder) LLMs?
+
 - Define perplexity. Why is it used to evaluate LLMs?
 - Explain LoRA (Low-Rank Adaptation) and why it’s efficient for fine-tuning.
 - How does parameter-efficient fine-tuning (PEFT) differ from full fine-tuning?
