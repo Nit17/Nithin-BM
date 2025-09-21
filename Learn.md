@@ -59,6 +59,27 @@
 
 - What are embeddings, and how do they help in semantic search and RAG?
 
+  - Embeddings: dense vectors that encode semantic meaning of text/code/images so semantically similar items are close in vector space.
+  - Produced by embedding models (e.g., sentence-transformers, E5/GTE, OpenAI text-embedding-3, Cohere; multilingual variants). Typical dims: 384–3072.
+  - Similarity: cosine or dot product (L2-normalize for cosine). Used to rank relevance.
+
+  - Semantic search workflow:
+    - Ingest: split docs into chunks, compute embeddings, store vectors + metadata in a vector DB (FAISS, Qdrant, Pinecone, Weaviate) using ANN indexes (HNSW/IVF).
+    - Query: embed the user query, run ANN search, return top-k nearest chunks.
+    - Options: hybrid search (BM25 + vectors), multi-vector/late interaction (e.g., ColBERT), and cross-encoder re-ranking for precision.
+
+  - In RAG:
+    - Retrieve: embeddings fetch semantically relevant chunks for the question.
+    - Re-rank/filter: optional cross-encoder re-ranker, metadata filters, time decay.
+    - Generate: build the prompt with retrieved chunks so the LLM answers grounded in sources, reducing hallucinations and enabling citations.
+
+  - Practical tips:
+    - Pick domain- and language-aligned models; tune chunk size/overlap.
+    - Store metadata (source, section, timestamp); dedupe and normalize vectors.
+    - Re-embed when models or data shift; cache to cut cost/latency.
+    - Evaluate with recall@k, MRR/NDCG; for RAG, measure groundedness/faithfulness.
+
+
 ### LLM Mechanics
 - Explain how positional encoding works in transformer models.
 - What is the difference between causal (decoder-only) vs. seq2seq (encoder-decoder) LLMs?
