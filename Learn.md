@@ -148,6 +148,24 @@
 
 - How does parameter-efficient fine-tuning (PEFT) differ from full fine-tuning?
 
+- How does parameter-efficient fine-tuning (PEFT) differ from full fine-tuning?
+  - Full fine-tuning:
+    - Update all model weights (100%). Highest capacity; best for large domain shifts.
+    - Expensive: optimizer states ≈ 2–3× params; large VRAM; store a full model per task.
+    - Risk of catastrophic forgetting without mixed/data-regularization.
+  - PEFT:
+    - Freeze base model; train small add-ons or deltas (<<1% params).
+    - Methods: LoRA/QLoRA (low-rank adapters on W_Q/W_K/W_V/FFN), Adapters, Prefix/Prompt tuning, BitFit.
+    - Benefits: 10–100× lower train memory/compute; fast; cheap to store/swap adapters per task; works with 4/8-bit (QLoRA).
+    - Trade-offs: slightly lower ceiling on tough domain shifts; choice of layers and rank r matters.
+  - Deployment:
+    - Full FT: one heavy checkpoint per task.
+    - PEFT: load base once; hot-swap small adapters or merge LoRA into base for inference.
+  - When to use:
+    - Use PEFT for most downstream tasks, limited compute, or multi-tenant setups.
+    - Use full FT for deep domain adaptation or when you must change core representations.
+
+
 ### RAG & AI Agents
 - What problem does RAG solve compared to plain prompting?
 - Explain chunking strategies in RAG pipelines. Trade-offs of large vs. small chunks.
