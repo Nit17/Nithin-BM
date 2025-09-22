@@ -130,7 +130,22 @@
     - Not comparable across different tokenizations or heavy prompt formatting.
 
 
-
+- Explain LoRA (Low-Rank Adaptation) and why it’s efficient for fine-tuning.
+  - Idea: freeze the large weight W and learn a low‑rank update ΔW instead of updating all params.
+    - Parameterization: $W' = W + s \cdot BA$, where $A \in \mathbb{R}^{r \times d_\text{in}}$, $B \in \mathbb{R}^{d_\text{out} \times r}$, rank $r \ll \min(d_\text{in}, d_\text{out})$, scale $s$.
+    - Forward: $W'x = Wx + s \cdot B(Ax)$. Initialize $B$ near 0 so training starts from the base model.
+  - Where applied: usually to attention projections (W_Q, W_K, W_V, W_O) and sometimes MLP layers. Base weights stay frozen; only A,B train.
+  - Why efficient:
+    - Far fewer trainable params (often <1%) → 10–100× lower optimizer memory and faster training.
+    - Compatible with quantization (QLoRA): keep W in 4‑bit, train LoRA in 16‑bit → fit bigger models on smaller GPUs.
+    - Modular: per‑task adapters are tiny; hot‑swap or merge into W for inference ($W \leftarrow W + sBA$).
+  - Hyperparams/tips:
+    - Rank r: 4–64 common; larger r = more capacity/cost. Use scaling α (LoRA α) and small lora_dropout for regularization.
+    - Target only the most impactful layers first (attention > MLP) to save memory.
+    - Use a re‑ranker/validation set to tune r, α, dropout. Monitor loss and task metrics.
+  - Trade‑offs:
+    - Slightly lower ceiling vs full FT on large domain shifts; performance sensitive to which layers are adapted and chosen rank.
+    - Multiple adapters can be composed (sum of ΔW), but may need calibration.
 
 
 - How does parameter-efficient fine-tuning (PEFT) differ from full fine-tuning?
