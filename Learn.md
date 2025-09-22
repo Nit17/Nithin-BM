@@ -335,3 +335,38 @@
 - **Easy:** Token Counter, Stopword Filter, Public API Call, FastAPI Endpoint  
 - **Medium:** Chunk Splitter, Top-k Retriever, Retry API Call, API Wrapper Class  
 - **Advanced:** Cosine Similarity, OpenAI API Call, Async API Calls
+
+
+--Core Python (must-know)
+
+What are Python’s data structures (list, tuple, dict, set) and when would you use each?
+
+How does Python handle memory management (Garbage Collection, reference counting)?
+
+Difference between deepcopy and shallow copy?
+
+Explain Python decorators and give an example use case in ML pipelines.
+
+What are generators? Why are they useful when working with large datasets for training?
+
+Explain how Python’s Global Interpreter Lock (GIL) affects multi-threading.
+
+What is the difference between @staticmethod, @classmethod, and instance methods?
+
+How would you handle exceptions in a long-running model training job?
+
+Explain context managers (with statement) and where they’re useful in ML workflows.
+
+Difference between is and == in Python.
+
+--NumPy / Pandas for Data Handling
+
+How do you efficiently handle large datasets in Pandas without running out of memory?
+
+Difference between loc[], iloc[], and ix[] (deprecated) in Pandas.
+
+How does broadcasting work in NumPy?
+
+How to vectorize operations in NumPy instead of using loops?
+
+Given a huge CSV file, how would you load it in chunks and preprocess it for model training?
