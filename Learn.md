@@ -241,6 +241,24 @@
     - Evaluate with NDCG/MRR/Recall@k; watch latency—fallback to lighter models (DistilBERT CE) if needed.
 
 - What is an AI Agent? How do frameworks like CrewAI, LangGraph, AutoGen differ?
+  - What is an AI Agent?
+    - An LLM-driven actor with a goal, memory/state, and the ability to plan and take actions via tools/APIs. Core pieces: (1) policy/reasoner (LLM prompts), (2) tools/functions, (3) memory (short/long-term), (4) planning/control loop, (5) feedback/evaluation.
+  - CrewAI
+    - Opinionated multi-agent “crews” with roles and tasks; simple to stand up (Python/YAML). Built-in patterns (sequential/parallel/hierarchical manager-worker), handoffs, and tool registries.
+    - Best for: quick multi-agent workflows, role-based collaboration, low boilerplate. Trade-off: less fine-grained control over state/flow than graph-first frameworks.
+  - LangGraph (LangChain)
+    - Graph/state-machine orchestration for agents and tools. Explicit nodes/edges, loops, interrupts, and persistence/checkpointing; typed shared state and streaming.
+    - Best for: production reliability, deterministic control over loops/retries, complex routing and hybrid RAG pipelines. Trade-off: more engineering effort to design the graph/state.
+  - AutoGen
+    - Message-passing multi-agent framework (chat among agents). Primitives like Assistant, UserProxy, GroupChat; strong support for code execution and tool use inside the loop (e.g., CodeExecutor).
+    - Best for: research/experiments with agent conversations, self-correction/debate, code-centric tasks. Trade-off: conversational loops can be costly; less structured than graph-first orchestration.
+  - Selection tips
+    - Need fast multi-agent prototypes with role/task semantics → CrewAI.
+    - Need robust control, retries, and stateful workflows in prod → LangGraph.
+    - Exploring multi-agent dialogues, code-gen with execution and debate → AutoGen.
+  - Common concerns
+    - Cost/latency control (limit tool calls/turns), observability (logs/traces), safety (tool whitelists, input/output checks), and memory design (episodic vs vector store vs summarized history).
+
 - Explain tool use (function calling) in LLMs. How does it enable agents?
 - How would you implement memory in an agent system?
 
