@@ -221,8 +221,25 @@
   - When to use:
     - Domains with jargon/IDs (legal, medical, code), short queries, safety-critical retrieval where missing exact terms is costly, or multilingual/noisy inputs.
 
-
 - Describe the role of re-ranking models (BERT, ColBERT, NeMo Retriever) in RAG.
+  - Role in RAG: second-stage precision filter. After a fast retriever (BM25/dense) returns top-N, a re-ranker scores (q, passage) pairs to select the final k passages used in the prompt. Boosts precision@k, reduces off-target context and hallucinations.
+  - BERT cross-encoder (e.g., monoBERT, MS MARCO CE):
+    - Architecture: joint encode “[CLS] query [SEP] passage [SEP]” → single relevance score.
+    - Strength: highest precision; great for small N (e.g., N=50–200 → keep k=5–10).
+    - Cost: slowest per pair; run on GPU, batch requests, truncate long passages or window them.
+  - ColBERT (late interaction bi-encoder):
+    - Idea: encode query and passage into token-level embeddings; score via MaxSim over tokens (preserves lexical precision with semantic matching).
+    - Strength: better balance of speed/precision than cross-encoders; supports multi-vector indexing (good for code, entities).
+    - Cost: bigger storage (many vectors per doc); custom index and scoring (but scalable with ANN).
+  - NeMo Retriever (NVIDIA):
+    - Toolkit with dense retrievers and cross-encoder re-rankers; supports domain adaptation, distillation, multi-GPU, and Triton deployment.
+    - Strength: production-friendly, optimized inference, easy to compose hybrid pipelines (sparse+dense→re-rank).
+  - Practical tips:
+    - Use re-ranking on the top-N from your retriever; tune N and final k on validation (e.g., N=100, k=10).
+    - For fusion (sparse+dense), normalize scores or use Reciprocal Rank Fusion before re-ranking.
+    - Chunk-level re-ranking often beats doc-level; de-duplicate and diversify (MMR) to avoid near-duplicates.
+    - Evaluate with NDCG/MRR/Recall@k; watch latency—fallback to lighter models (DistilBERT CE) if needed.
+
 - What is an AI Agent? How do frameworks like CrewAI, LangGraph, AutoGen differ?
 - Explain tool use (function calling) in LLMs. How does it enable agents?
 - How would you implement memory in an agent system?
