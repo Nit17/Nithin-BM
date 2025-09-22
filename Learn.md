@@ -167,7 +167,6 @@
 
 
 ### RAG & AI Agents
-- What problem does RAG solve compared to plain prompting?
 
 - What problem does RAG solve compared to plain prompting?
   - Problem with plain prompting: LLMs lack up-to-date/domain-specific facts; hallucinate when info isn’t in weights; limited context window; no citations or access control.
@@ -178,7 +177,6 @@
 
 - Explain chunking strategies in RAG pipelines. Trade-offs of large vs. small chunks.
 
-- Explain chunking strategies in RAG pipelines. Trade-offs of large vs. small chunks.
   - Goal: keep enough local context for answering while maximizing retrieval recall.
   - Common strategies:
     - Fixed-length token chunks with overlap (sliding window). Simple, fast, predictable.
