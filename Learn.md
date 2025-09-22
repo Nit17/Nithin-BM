@@ -285,6 +285,47 @@
     - Prevent infinite loops (max steps), handle tool errors with explicit error payloads, and require structured outputs to avoid JSON drift.
 
 - How would you implement memory in an agent system?
+  - Goals: let the agent remember salient facts, preferences, decisions, and past tool results to improve future reasoning while controlling cost, drift, and privacy.
+  - Memory types:
+    - Short‑term/working: recent turns, scratchpad (ReAct) for current plan/variables.
+    - Episodic: time‑stamped events (who/what/when/where) from prior sessions.
+    - Semantic: distilled facts/preferences/skills the agent has learned.
+    - Tool/cache: results of expensive queries, embeddings, auth state, schemas.
+    - Shared/blackboard (multi‑agent): team-visible notes with access controls.
+  - Read pipeline (at inference):
+    1) Identify memory need (heuristic or model hint: “retrieve profile/project facts”).
+    2) Query stores:
+       - Vector store for semantically relevant memories (k=5–20, cosine/dot).
+       - Key–value/Redis for recent session state, TTL caches.
+       - RDBMS/graph DB for structured facts and relations.
+    3) Re-rank/curate: dedupe, diversify (MMR), time decay, source filtering.
+    4) Compress to fit context: summarize or “contextual compression” to the query.
+  - Write pipeline (after each step/turn):
+    1) Extract candidates (LLM tagger or rules) → entities, preferences, decisions, failures.
+    2) Gate by salience: write only if novel, important, and likely reusable (score threshold).
+    3) Normalize to schema:
+       - event_id, user_id/tenant_id, agent_id, ts, type {fact|pref|task|error}, text, structured fields, embeddings, PII flags, TTL/policy.
+    4) Persist to:
+       - Vector DB (text + embedding), KV/Redis (recent/TTL), SQL (structured).
+    5) Schedule consolidation: periodic “reflection” jobs that summarize episodic logs into stable semantic facts; archive or delete raw logs.
+  - Retention/forgetting:
+    - Sliding windows per topic/session; TTLs by type; time‑decay scoring.
+    - Quotas per user/tenant; background summarization to keep total tokens bounded.
+    - Guard against contamination: label provenance; don’t promote low‑confidence info to semantic memory.
+  - Safety & governance:
+    - PII detection/redaction; encryption at rest; per‑tenant indexes; RBAC on reads.
+    - Prompt‑injection defense: never write memories from untrusted text without gating; keep “instructions” separate from “facts.”
+    - Audit logs for memory writes/reads; right‑to‑be‑forgotten workflows.
+  - Practical defaults:
+    - Embeddings: E5/GTE 768–1024d; chunk 200–400 tokens; HNSW index; k=10; MMR λ≈0.5.
+    - Summarize when thread >1–2k tokens or daily; keep a 5–20 turn short‑term window.
+    - Store profile/preferences as structured rows with an embedding mirror for retrieval.
+  - Multi‑agent notes:
+    - Shared blackboard with typed channels (plan, findings, blockers); per‑agent private memory.
+    - Mediator enforces who can write/read which channel; summarize long threads to keep latency low.
+  - Evaluation:
+    - Ablate memory reads/writes; track answer accuracy, groundedness, latency, and tool call count.
+    - Spot‑check for drift and privacy leaks; test deletion/RTBF works end‑to‑end.
 
 ### Evaluation & Safety
 - Common evaluation metrics for LLMs (BLEU, ROUGE, F1, RAGAS).
