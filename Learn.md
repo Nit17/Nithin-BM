@@ -200,6 +200,26 @@
     - Use re-rankers (cross-encoder) or multi-vector methods when using larger chunks.
 
 - How does multi-vector (hybrid) search improve retrieval over embeddings-only search?
+  - What it is:
+    - Hybrid sparse+dense: combine lexical signals (BM25/SPLADE) with dense embeddings.
+    - Multi-vector representations: index multiple vectors per doc/passage (e.g., token/phrase-level as in ColBERT, or multiple field/chunk vectors).
+  - Why it helps:
+    - Recovers exact terms (rare entities, codes, numbers, negations) that dense-only can miss, while still capturing semantic similarity.
+    - Better recall on short/keyword-y or out-of-domain queries; more robust to multi-intent queries.
+    - Typically improves top-k recall and downstream answer quality before re-ranking.
+  - Common variants:
+    - Sparse + dense fusion: score = α·cosine_dense + (1−α)·BM25 (normalize scores first) or use Reciprocal Rank Fusion (RRF).
+    - Late interaction (ColBERT-style): represent passages with many token vectors; score = sum/max of token-level sims → preserves lexical precision with semantic matching.
+    - Multi-field/multi-chunk: separate vectors for title/body/code/comments or per-chunk; aggregate (max/mean) at doc level.
+  - Implementation notes:
+    - Normalize per-retriever scores (z-score or min–max) before weighted fusion; tune α on a validation set.
+    - RRF avoids calibration issues: RRF(doc) = Σ_i 1/(k + rank_i).
+    - Add a cross-encoder re-ranker on top-N to boost precision.
+  - Trade-offs:
+    - More storage/compute and higher latency than dense-only; fusion weight tuning required.
+    - Late interaction/multi-vector can be memory-heavy (many vectors per doc).
+  - When to use:
+    - Domains with jargon/IDs (legal, medical, code), short queries, safety-critical retrieval where missing exact terms is costly, or multilingual/noisy inputs.
 
 
 - Describe the role of re-ranking models (BERT, ColBERT, NeMo Retriever) in RAG.
