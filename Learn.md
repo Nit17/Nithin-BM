@@ -260,6 +260,30 @@
     - Cost/latency control (limit tool calls/turns), observability (logs/traces), safety (tool whitelists, input/output checks), and memory design (episodic vs vector store vs summarized history).
 
 - Explain tool use (function calling) in LLMs. How does it enable agents?
+  - What it is:
+    - The LLM emits a structured “function call” (tool name + JSON args matching a schema). The runtime executes the tool (API/DB/code), returns an observation, and the LLM continues with that result. Loop until a final answer.
+  - Why it enables agents:
+    - Extends the model beyond its weights: browse/query/compute/act (e.g., call APIs, run code, query SQL/vector DBs, control apps).
+    - Supports planning→acting→observing loops (ReAct/Plan-and-Execute), letting the model decompose tasks, use tools, and self-correct.
+    - Structured I/O (JSON) makes integrations reliable and composable across multiple steps.
+  - Typical components:
+    - Tool registry: name, description, JSON Schema, auth/permissions.
+    - Router/selector: the model decides which tool (or none) and constructs valid args.
+    - Executor: runs the tool, enforces timeouts/quotas, returns a compact result.
+    - Memory/state: short-term (chat history) + long-term (vector store/DB) tools for recall and persistence.
+  - Common patterns:
+    - ReAct: think → act (tool call) → observe; iterate.
+    - Planner–executor: a planner drafts steps, an executor performs tool calls.
+    - Hybrid RAG: retrieve (vector/sparse) → optionally re-rank → generate; retrieval is “just a tool.”
+  - Design tips:
+    - Write precise tool descriptions with small examples; use JSON Schema constraints (enums, min/max) to guide arguments.
+    - Validate args server-side; return machine-friendly, truncated results (ids, fields) plus a “get_by_id” tool to fetch details on demand.
+    - Cap tool calls/turns; add retries/backoff; normalize/calibrate scores for fused retrievers; log calls/latency/errors for observability.
+  - Safety & reliability:
+    - Principle of least privilege, per-user/tenant scoping, allowlists, rate limits, and sandboxed execution for code/tools.
+    - Guard against prompt injection from retrieved text; sanitize outputs; filter PII; audit logs for actions with side effects.
+    - Prevent infinite loops (max steps), handle tool errors with explicit error payloads, and require structured outputs to avoid JSON drift.
+
 - How would you implement memory in an agent system?
 
 ### Evaluation & Safety
