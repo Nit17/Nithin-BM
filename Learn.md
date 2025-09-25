@@ -365,8 +365,59 @@
     - BERTScore/BLEURT (semantic similarity), QAFactEval/FactCC (factual consistency) as stronger semantic/faithfulness checks.
 
 - Explain hallucination in LLMs. Strategies to reduce it.
+
+  - What is hallucination: model outputs that are unsupported by evidence (extrinsic), contradict facts, or internally inconsistent (intrinsic); includes fabricated citations/IDs/numbers.
+  - Why it happens: next-token training rewards fluency over factuality; missing/ stale knowledge; ambiguous prompts; long/irrelevant context; aggressive sampling/decoding.
+
+  - Reduction strategies:
+    - Grounding (RAG): retrieve top‑k relevant chunks; use strong retrievers + re‑rankers; instruct “answer only from context; say ‘not found’ otherwise”; require citations (source ids/spans).
+    - Prompting: be specific about format and refusal policy; ask for stepwise evidence checks without revealing chain-of-thought; request an “I don’t know” option.
+    - Tools over guessing: calculator for math, code exec for logic, web/API/db for facts; function calling with strict JSON schema.
+    - Constrained generation: schemas/grammars, closed‑book vs open‑book modes, entity lists/KB constraints, allowlists for domains.
+    - Decoding controls: lower temperature/top‑p; avoid wide beam search for factual tasks; cap max tokens; penalize repetition.
+    - Model & tuning: choose domain‑aligned models; SFT on grounded QA; preference tuning (RLHF/DPO) for truthfulness/abstention; penalize unsupported claims in rewards.
+    - Context hygiene: good chunking, overlap, metadata filters, time decay; dedupe; keep prompts short and on-topic.
+
+  - Detection & evaluation:
+    - Automatic: RAGAS (faithfulness, context precision/recall), QAFactEval/FactCC, entailment (NLI) between answer and sources.
+    - Retrieval metrics: Recall@k, MRR/NDCG; track “answerable from context” rate and abstention rate.
+    - Human audits on sampled outputs; log citations and verify they support each claim.
+
+
 - What is groundedness in GenAI evaluation? How do you test for it?
+
+  - Definition: the degree to which an answer’s claims are supported by the provided context (retrieved documents, tables, APIs), not just by the model’s parametric knowledge. Distinct from “factuality” (truth w.r.t. the real world); groundedness is support w.r.t. supplied sources.
+
+  - How to test (practical recipe):
+    1) Require citations: have the model output claims with source_ids (and optionally span/quote offsets).
+    2) Claim extraction: break the answer into atomic claims (rules or an LLM tagger).
+    3) Evidence retrieval: for each claim, gather cited spans; if missing, search the provided context (sentence-level).
+    4) Entailment check: run an NLI/citation verifier (e.g., DeBERTa/BERT NLI or LLM-as-judge) to see if evidence supports the claim.
+    5) Score:
+       - Attribution Precision/Recall/F1 = over claims, what fraction are supported by cited context vs missing/contradicted.
+       - RAGAS-style: Faithfulness (claims supported), Context Precision/Recall (context on-topic and sufficient), Answer Relevance.
+       - Report unsupported rate, abstention rate (“I don’t know”), and citation coverage.
+
+  - Tools/metrics:
+    - RAGAS: Faithfulness, Context Precision/Recall, Answer Relevance, (optional) Answer Correctness.
+    - NLI/QAFactEval/FactCC: entailment between claim and cited span(s).
+    - Retrieval coupling: Recall@k/NDCG for whether gold spans were retrieved; low recall caps groundedness.
+    - Human audit: sample and verify that cited passages actually support each claim.
+
+  - Guardrails to improve groundedness:
+    - Prompting: “Answer only from the context; if not present, say ‘Not found’” and require inline citations (e.g., [doc_id#para]).
+    - Generation constraints: schema with fields {claim, citation_ids, quote}; penalize outputs without valid citations.
+    - Pipeline: strong retriever + re-ranker; contextual compression; filter stale/off-domain docs; time decay.
+    - Decoding: lower temperature for factual tasks; cap max tokens to reduce drift.
+    - Training: SFT on grounded QA with citations; preference tuning (RLHF/DPO) rewarding supported claims/abstention.
+
+  - Reporting:
+    - Always specify judge model/prompt (if LLM-as-judge), temperature=0, seed, and datasets.
+    - Include both answer-level and claim-level metrics, plus retrieval metrics, for a full picture.
+
+
 - How does constitutional AI enforce alignment?
+
 - What are prompt injection and data poisoning attacks? Mitigation strategies?
 - How to monitor bias, toxicity, fairness in a GenAI app?
 - Difference between adversarial prompts and jailbreak prompts.
