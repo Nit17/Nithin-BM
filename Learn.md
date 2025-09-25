@@ -448,6 +448,50 @@
 
 
 - What are prompt injection and data poisoning attacks? Mitigation strategies?
+
+  - Prompt injection (at inference):
+    - What: An adversary crafts inputs (user prompts or retrieved content in RAG) that hijack instructions, e.g., “Ignore previous rules and …”, exfiltrate secrets, or force unsafe actions via tool calls.
+    - Variants: direct user prompt injection; indirect/jailbreak via retrieved webpages/docs; instruction smuggling in code blocks/HTML comments/metadata; CSS/data-URI attacks on UIs; tool-output “reflection” attacks.
+    - Risks: policy override, data exfiltration (keys, system prompt), unsafe tool actions, reputational/ compliance breaches.
+  - Data poisoning (at training/ingestion):
+    - What: Malicious or low-quality data inserted into training corpora, embedding stores, or evaluation sets to bias behavior or trigger backdoors (e.g., special tokens cause harmful responses).
+    - Variants: pretraining/finetuning poison; RAG index poison (malicious chunks dominate retrieval); prompt templates or evals with contaminated references.
+    - Risks: persistent misbehavior, targeted backdoors, degraded retrieval precision, miscalibrated evaluations.
+
+  - Mitigation strategies:
+    - Defense-in-depth policy:
+      - Separate instruction channels: keep system/developer prompts immutable and out of the model’s editable context; label provenance of each context segment.
+      - Content provenance & trust tiers: mark retrieved text as untrusted; apply different parsing/rules; never let untrusted text set policy.
+      - Principle of least privilege for tools: fine-grained allowlists, per-user scopes, dry-run/confirm steps for side-effects; timeouts and quotas.
+    - Prompting & parsing:
+      - Sandwich prompts: policy → user → policy reminder; restate rules after user content; require structured JSON outputs with strict schemas/grammars.
+      - Delimiters and fenced blocks: treat retrieved text as data, not instructions; instruct the model to ignore any instructions inside user/retrieved content.
+      - Output validation: JSON schema validation; type/enum checks; allow only known commands/IDs; post-processors to block suspicious patterns (URLs, secrets).
+    - Retrieval/RAG hygiene:
+      - Source filtering: domain allowlists, blocklists, freshness windows; strip scripts/HTML; sanitize Markdown links; disable remote resource loading.
+      - Contextual compression and re-ranking: reduce attack surface by passing only necessary spans; diversify to avoid single-source domination.
+      - Citation requirement: force evidence-linked answers to discourage following injected instructions.
+    - Detection & monitoring:
+      - Heuristics: patterns like “ignore previous”, base64/hex blobs, long code blocks with instructions; anomaly detectors on token distributions.
+      - Safety classifiers: toxicity/hate/self-harm, data exfiltration detectors; tool-call anomaly detection (rate/arg patterns).
+      - Red-teaming and canaries: seeded prompts and hidden markers to detect exfiltration and policy bypasses.
+    - Data pipeline protections (poisoning):
+      - Data contracts and lineage: track source, hashes, versioning; quarantine unverified data; dual-approval for schema/prompt template changes.
+      - Automated quality gates: deduplication, PII scrub, profanity filters, language/id checks; outlier detection on embeddings.
+      - Backdoor screening: test triggers (rare tokens/phrases) and differential behavior; hold-out clean validation sets.
+      - RAG index controls: de-dup, per-tenant isolation, signed documents, moderation at ingest, periodic re-embedding with vetted models.
+    - Organizational controls:
+      - Secrets management: never put secrets/system prompts in user-visible contexts; use KMS/secret managers; rotate keys.
+      - Access controls & auditing: RBAC on tools/data; immutable logs of prompts, tool calls, and outputs; incident response playbooks.
+
+  - Practical defaults:
+    - Temperature 0–0.3 for factual tasks; strict JSON schemas; max tokens limits; reject responses lacking required citations when in RAG mode.
+    - Retrievers: hybrid (BM25+dense), top-k small with re-ranking, context windows 1–2k tokens with compression; sanitize HTML/JS.
+    - Regularly run a prompt-injection test suite and a poisoned-data sentinel set; track refusal correctness and exfiltration rate as KPIs.
+
+
+
+
 - How to monitor bias, toxicity, fairness in a GenAI app?
 - Difference between adversarial prompts and jailbreak prompts.
 
