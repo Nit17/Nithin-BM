@@ -418,6 +418,8 @@
 
 - How does constitutional AI enforce alignment?
 
+
+
 - What are prompt injection and data poisoning attacks? Mitigation strategies?
 - How to monitor bias, toxicity, fairness in a GenAI app?
 - Difference between adversarial prompts and jailbreak prompts.
