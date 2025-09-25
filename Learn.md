@@ -328,7 +328,10 @@
     - Spot‑check for drift and privacy leaks; test deletion/RTBF works end‑to‑end.
 
 ### Evaluation & Safety
+
 - Common evaluation metrics for LLMs (BLEU, ROUGE, F1, RAGAS).
+
+
 - Explain hallucination in LLMs. Strategies to reduce it.
 - What is groundedness in GenAI evaluation? How do you test for it?
 - How does constitutional AI enforce alignment?
