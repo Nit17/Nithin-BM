@@ -418,6 +418,33 @@
 
 - How does constitutional AI enforce alignment?
 
+  - Definition: A training and inference-time framework where an explicit set of principles (a “constitution”) guides the model to be helpful, harmless, and honest. The rules are written as natural-language guidelines the model can reference.
+
+  - Mechanisms (how it enforces alignment):
+    - Inference-time critique-and-rewrite:
+      1) Draft: the model produces an initial answer.
+      2) Self-critique: prompt the model to check its output against the constitution (e.g., safety, privacy, fairness) and list violations.
+      3) Revise: the model rewrites the answer to comply; optionally iterate or do rejection sampling then rewrite.
+    - Training-time with AI feedback (RLAIF):
+      - Generate pairs: produce initial and revised answers; use a judge prompt grounded in the constitution to prefer the safer/more aligned response.
+      - Preference tuning: train with AI preference labels (e.g., reward modeling + RLHF, or DPO/ORPO using the preferred vs rejected outputs).
+      - SFT with critiques: optionally include “critique → revision” traces, then distill to a single-step policy that internalizes the rules.
+
+  - Example principles (constitution):
+    - Safety/harms: refuse illegal, dangerous, or self-harm instructions; offer safe alternatives.
+    - Privacy: avoid revealing PII; don’t infer sensitive attributes; minimize data exposure.
+    - Honesty: avoid fabrications; acknowledge uncertainty; cite sources when asked.
+    - Fairness/neutrality: avoid biased or demeaning language; maintain neutral tone.
+    - Professional boundaries: no medical/legal/financial advice beyond general information; encourage consulting professionals.
+
+  - Where rules live: system prompts (policy), judge prompts (for preferences), and training data (preferred vs rejected responses). They can be versioned per product/locale and audited.
+
+  - Why it works: converts vague “be safe” into consistent, auditable instructions that the model can apply to police itself; scales alignment signals via AI feedback instead of relying solely on costly human labels.
+
+  - Limitations/trade-offs: possible over-refusals or under-refusals; rule conflicts and prompt-injection risks; dependence on judge/policy quality; distribution shifts (language/domain) can degrade adherence; may curb creativity if overly strict.
+
+  - Evaluation tips: red-team pass rate, harmful-advice rate, refusal accuracy (should refuse when required, comply when safe), helpfulness with safe alternatives, and policy-citation quality; combine with groundedness checks for factual tasks.
+
 
 
 - What are prompt injection and data poisoning attacks? Mitigation strategies?
