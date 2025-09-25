@@ -1,5 +1,4 @@
 
-
 ## 1. Core GenAI Concepts
 
 ### Foundational GenAI
