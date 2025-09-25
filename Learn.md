@@ -331,6 +331,38 @@
 
 - Common evaluation metrics for LLMs (BLEU, ROUGE, F1, RAGAS).
 
+  - BLEU (Machine Translation-style):
+    - What: n-gram precision with a brevity penalty (typically up to 4-grams).
+    - Use for: MT or tasks where exact phrasing overlap matters.
+    - Notes: apply smoothing; case/segmentation matter; weak on faithfulness/semantics for open-ended gen.
+
+  - ROUGE (Summarization-style):
+    - What: recall-focused n-gram overlap. ROUGE-1/2 (uni/bi-gram recall), ROUGE-L/Lsum (Longest Common Subsequence).
+    - Use for: summarization; content coverage vs reference.
+    - Notes: can reward verbose outputs; doesn’t guarantee factuality.
+
+  - F1 (Precision/Recall harmonic mean):
+    - What: token- or span-level Precision = TP/(TP+FP), Recall = TP/(TP+FN), F1 = 2PR/(P+R).
+    - Use for: extractive QA, information extraction, classification; often paired with Exact Match (EM) for QA.
+    - Notes: specify micro vs macro averaging; tokenizer and normalization (lowercase, punctuation, stopwords) change scores.
+
+  - RAGAS (RAG-specific):
+    - What: LLM-graded metrics tailored to retrieval-augmented generation:
+      - Faithfulness: are claims grounded in retrieved context?
+      - Answer Relevance: does the answer address the question?
+      - Context Precision/Recall (and Relevance): is retrieved context on-topic and sufficient?
+      - Answer Correctness (optional): semantic correctness vs reference.
+    - Use for: end-to-end RAG evaluation beyond overlap metrics.
+    - Notes: relies on an LLM judge → prompt/config sensitivity, variance, and cost; fix temperature (e.g., 0), seed, and judge model; audit a sample manually.
+
+  - Practical tips:
+    - Match metric to task: MT → BLEU; summarization → ROUGE/BERTScore; extractive QA → EM/F1; RAG → RAGAS + retrieval metrics (Recall@k, MRR, NDCG).
+    - Standardize preprocessing (casing, stemming, detokenization) for fair comparisons.
+    - Add human eval for faithfulness/helpfulness; overlap metrics don’t capture factuality.
+    - Report dataset, metric variants, and configs (n-gram order, smoothing, judge model) for reproducibility.
+
+  - Also consider:
+    - BERTScore/BLEURT (semantic similarity), QAFactEval/FactCC (factual consistency) as stronger semantic/faithfulness checks.
 
 - Explain hallucination in LLMs. Strategies to reduce it.
 - What is groundedness in GenAI evaluation? How do you test for it?
