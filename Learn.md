@@ -637,7 +637,115 @@
 
 ### Deployment & MLOps
 - How to design a scalable LLM inference system?
+
+  - Objectives: minimize tail latency (p95/p99), maximize throughput (tokens/sec/GPU), reduce cost ($/1k tokens), maintain reliability (SLOs), secure multi-tenancy, enforce safety & observability.
+
+  - Core components:
+    1) API Gateway: auth (API key/JWT), rate limiting, idempotency keys, request normalization.
+    2) Orchestrator / Router: model selection (policy-based, quality tiers), batching queue, A/B & canary, fallback logic.
+    3) Pre-processing: prompt templating, context assembly (RAG retrieval + compression), safety pre-check, tokenization.
+    4) Inference Workers (accelerated): dynamic micro-batching, KV cache (reuse across turns), quantized or mixed-precision model runtime (vLLM / FasterTransformer / TensorRT-LLM).
+    5) Post-processing: streaming assembly, safety post-filter, citation validation, formatting (JSON/schema), truncation.
+    6) Caching Layers: prompt/full-completion, prefix/KV sharing, embedding cache, metadata TTL logic.
+    7) Observability: metrics (latency, queue depth), traces, structured logs, usage billing, anomaly detection.
+    8) Feedback & Data Loop: user ratings, red-team outcomes, regression evaluation harness, fine-tune sample capture.
+
+  - Request lifecycle (happy path):
+    Ingest → Auth/Quota → Normalize & Hash → Prompt Cache lookup → (Miss) Retrieve (parallel dense+sparse) → Compress context (MMR / summarization) → Assemble prompt → Batch Scheduler → Forward pass (speculative or standard) → Stream tokens (with online safety scanning) → Post-filter & format → Emit → Log & metrics & feedback enqueue.
+
+  - Latency & throughput tactics:
+    - Dynamic micro-batching: accumulate for ~5–20 ms or batch-size limit; pack by similar token lengths to reduce padding.
+    - Speculative decoding: small draft model proposes k tokens; large model verifies → 1.3–2× speedup typical.
+    - Multi-query / grouped-query attention to reduce K/V duplication per head.
+    - FlashAttention / fused kernels; ensure overlap compute/IO; pin memory.
+    - Prefix/KV cache reuse for shared system prompts or conversation history.
+
+  - Memory & model efficiency:
+    - Quantization: INT8/FP8/4-bit (QLoRA or AWQ/GPTQ) for higher batch or longer context; watch accuracy regression (evaluate golden set).
+    - Mixed precision (BF16/FP16) vs FP32; gradient-free inference avoids optimizer states.
+    - Sharding: tensor/pipeline parallel for > single GPU capacity; prefer fewer partitions for lower latency if memory allows.
+    - KV eviction: LRU across sessions when memory watermark reached; track cache hit ratio.
+
+  - Caching strategy:
+    - Prompt exact hash (normalized JSON/system prompt stable) → completion.
+    - Prefix dedup: detect longest common prefix in active batch and compute once.
+    - Embedding cache (content hash) for RAG ingestion & re-retrieval.
+    - Tiered: RAM (hot), Redis/memcached (warm), object store (cold). Evict on model version or policy change.
+
+  - Routing & multi-model policy:
+    - Quality tiers: fast small model for straightforward queries, larger model for complex reasoning (decided by classifier or heuristics: length, complexity keywords, required factuality).
+    - Canary rollout: <5% traffic; compare latency, refusal accuracy, task metrics; auto rollback on regressions.
+    - Fallback: timeout or error threshold triggers smaller backup model or different region.
+
+  - Retrieval (RAG) integration:
+    - Parallel sparse (BM25/SPLADE) + dense (vector) retrieval; fuse scores (RRF or weighted) → re-rank top-N (cross-encoder) → contextual compression (drop low-contribution sentences) → enforce token budget.
+    - Query intent classifier: skip retrieval for chit-chat / personal preference queries.
+    - Citation enforcement: tag chunks with IDs; post-check answer cites only retrieved IDs.
+
+  - Safety & governance:
+    - Pre & in-stream filtering (toxicity, self-harm, PII, jailbreak heuristics) with early abort on severity.
+    - Policy templates: jurisdiction-aware content filters (regional compliance toggles).
+    - Logging: store minimal hashed identifiers; retention TTL; secure vault for encryption keys.
+    - Tool sandbox: network/file isolation, execution time caps, JSON schema arg validation.
+
+  - Observability & metrics:
+    - Core: p50/p95/p99 end-to-end, queue wait, model compute time, tokens/sec/GPU, batch size distribution, cache hit %, retrieval latency breakdown, safety block rate.
+    - Quality: refusal correctness (true positive vs false positive), groundedness (if RAG), answer length distribution, hallucination proxy metrics.
+    - Cost: $/1k output tokens, GPU utilization %, idle capacity %, cache savings (token skip %).
+    - Tracing: correlation ID across gateway → retrieval → inference → safety; sample traces for long-tail latency.
+
+  - Reliability patterns:
+    - Circuit breakers around retrieval or external tools (open after error spike, degrade gracefully).
+    - Warm standby replicas (preloaded weights) to absorb bursts; rolling deploy with pre-warm handshake.
+    - Graceful degradation ladder: (1) turn off speculative decoding, (2) reduce max_new_tokens, (3) route to smaller model, (4) switch to offline queue.
+    - SLA partitions: reserve GPU slices for premium tenants; avoid noisy neighbor starvation.
+
+  - Cost optimization levers:
+    - Right-size hardware portfolio: H100/A100 for large context; L4 / consumer GPUs for smaller models / embedding tasks.
+    - Mixed pool autoscaling: scale cheaper nodes for baseline; scale high-end only when high complexity demand.
+    - Prune rarely used models; lazy load on first request (with TTL unload timer).
+    - Nightly efficiency report: tokens/sec/GPU, cache hit improvement, speculative success rate.
+
+  - Feedback & continuous improvement:
+    - Golden evaluation set (diverse tasks, safety cases) run on each build; block deploy on metric regression thresholds.
+    - Red-team prompt suite (jailbreak/injection) executed nightly; track bypass rate trend line.
+    - User rating & flag pipeline feeding labeled dataset; active learning surface (low confidence + high impact samples).
+
+  - Capacity planning formula (simplified):
+    - Required GPUs ≈ (Incoming_tokens_per_sec / (Effective_tokens_per_sec_per_GPU × Utilization_target))
+    - Effective tokens/sec accounts for average batch size × model throughput × (1 - overhead_fraction).
+    - Maintain headroom (e.g., 30%) for burst + failover.
+
+  - Example starter SLOs (tune per product):
+    - p95 latency (short prompt <1k tokens) < 800 ms.
+    - Availability (no 5xx) ≥ 99.5% monthly.
+    - Safety false negative (audited) < 0.1%; false refusal < 3%.
+    - Cache hit (prompt + KV) ≥ 25% after warm-up.
+
+  - Scalability mnemonic: BATON-CRAFT
+    - Batching, Autoscaling, Token efficiency, Orchestration, Networking locality
+    - Caching, Retrieval optimization, Alignment (safety), Feedback loop, Token economics
+
+  - Common pitfalls:
+    - Ignoring queue wait vs model compute breakdown.
+    - Over-long prompts (history bloat) harming throughput and cost.
+    - Stale caches after model or policy update (missing invalidation hooks).
+    - One-size-fits-all model (no routing) inflating cost.
+    - Lack of golden regression → silent quality regressions post optimization.
+
+  - Implementation bootstrap (phased):
+    1) Baseline: single model + streaming + metrics.
+    2) Add dynamic batching + prompt cache + tracing.
+    3) Introduce RAG & safety cascade.
+    4) Multi-model router + canary + fallback.
+    5) Performance: speculative decoding, quantization, KV sharing.
+    6) Governance: nightly eval gates, red-team automation, cost dashboards.
+    7) Advanced: autoscale heuristics tuning, A/B quality scoring, active learning feedback ingestion.
+
+
 - Compare hosting on OpenAI API / Bedrock / Azure AI Foundry vs self-hosted LLaMA/Mistral.
+
+
 - How does quantization (INT8/4-bit) help in deployment? Trade-offs.
 - Difference between online vs batch inference for LLM workloads.
 - Implement caching strategies to reduce LLM cost/latency.
