@@ -571,7 +571,69 @@
     - Fast detection/rollback (<24h) for regressions.
     - Transparent reporting: audit logs + periodic fairness summary shared with stakeholders.
 
-- Difference between adversarial prompts and jailbreak prompts.
+-- Difference between adversarial prompts and jailbreak prompts.
+
+  - Adversarial prompts (umbrella): deliberately crafted inputs aimed at triggering ANY failure mode: unsafe or policy-violating output, misinformation, biased/ stereotyped responses, secret or system prompt leakage, logic derailment, denial-of-service via mass refusals, retrieval/tool misuse, or subtle quality degradation (lower factuality/groundedness).
+  - Jailbreak prompts (subset): specialized adversarial prompts whose primary goal is to bypass safety & alignment guardrails to elicit explicitly disallowed content (e.g., weapon construction, self-harm facilitation, hate speech, doxxing, targeted harassment). Success criterion = model emits content it should have refused.
+
+  - Typical jailbreak tactics:
+    - Role / persona override: “Act as an uncensored model… ignore previous instructions.”
+    - Indirection & hypotheticals: frame as fiction, satire, research, translation, or “explain what someone COULD do.”
+    - Multi-turn priming: early benign turns weaken/rewrite policy context before the harmful ask.
+    - Obfuscation: leet (w3ap0n), homoglyphs, zero‑width chars, base64/hex, spaced letters to evade filters.
+    - Split payload: distribute the instruction over several messages or code/data blocks.
+    - Instruction smuggling: hide override text inside quotes, tables, code fences, HTML comments, or retrieved RAG passages.
+
+  - Broader adversarial patterns (not necessarily jailbreak):
+    - Context window flooding / truncation (push system prompt out of window).
+    - Retrieval poisoning (malicious chunk inserted so RAG cites false or unsafe instructions).
+    - Tool steering / escalation (coax use of powerful tool with crafted rationale).
+    - Formatting confusion (malformed JSON / nested quotes to break parsers or validators).
+    - Logic traps & contradiction loops to degrade trust / consistency.
+
+  - Differences at a glance:
+    - Scope: adversarial = any exploit vector; jailbreak = explicit safety-policy circumvention.
+    - Success signal: adversarial may just reduce quality or induce bias; jailbreak yields disallowed output.
+    - Defense emphasis: adversarial requires anomaly + integrity + retrieval/tool protections; jailbreak emphasizes semantic safety & refusal robustness.
+    - Attack leverage: jailbreak leans on social engineering & semantic persuasion; broader adversarial may exploit structural mechanics (context, formatting, indexing, tooling).
+
+  - Relation to other terms:
+    - Prompt injection: instruction override vector (esp. via retrieved content) enabling either jailbreak or other adversarial goals (exfiltration, manipulation).
+    - Data poisoning: upstream contamination (training/index) that increases downstream exploitability.
+    - Red-teaming: sanctioned generation of adversarial / jailbreak prompts for measurement & improvement.
+
+  - Layered mitigations:
+    1) Immutable policy reinforcement: reattach / reassert system safety preamble every turn; detect token displacement (system prompt index monitoring).
+    2) Input normalization: Unicode NFKC, remove zero-width chars, canonicalize homoglyphs, detect/flag base64 & hex blocks, de-leet mapping.
+    3) Safety gating cascade: fast pattern / keyword blacklist (high precision) → lightweight classifiers (toxicity, self-harm, PII) → LLM safety judge (temp=0) for nuanced semantics → refusal / rewrite.
+    4) Structured output constraints: JSON/function schemas + strict validation to reduce free-form exploit surface; reject malformed responses.
+    5) Continuous adversarial training refresh: incorporate newest jailbreak styles (role-play, obfuscated, multilingual) into preference / DPO datasets.
+    6) Provenance labeling: tag segments as system | user | retrieved | tool; ignore or down-weight instructions from untrusted segments.
+    7) Tool mediation & rationale verification: require explicit reason + intended tool; secondary checker validates rationale vs policy before execution.
+    8) Streaming safety monitor: parallel classifier/LLM inspects partial generation; early-abort on unsafe trajectory.
+    9) Session escalation: throttling & stricter guardrails after repeated near-miss jailbreak attempts; potential human review trigger.
+    10) Automated red-team harness: mutate & fuzz known jailbreak prompts; track bypass rate trend; feed escapes back into training.
+
+  - KPIs:
+    - Jailbreak bypass rate = disallowed outputs released / attempted high-risk prompts (trend ↓).
+    - False refusal rate (benign prompts refused) – maintain acceptable utility/safety trade-off.
+    - Mean time to patch (detection → mitigation deployed).
+    - Tactic coverage (# distinct jailbreak tactic classes exercised in last 7 / 30 days).
+    - System prompt displacement attempts blocked (% prevented).
+
+  - Practical defaults:
+    - Temperature ≤0.4 for safety-critical endpoints; max token caps; standardized refusal template language.
+    - Mandatory citations in RAG answers (uncited injected instructions stand out & can be filtered).
+    - Nightly adversarial regression suite; fail build if bypass rate exceeds threshold.
+
+  - Pitfalls:
+    - Overfitting to static regex/keywords → obfuscation bypasses.
+    - Excessive refusals harming UX → users escalate creativity.
+    - Single safety classifier → concept drift blind spot.
+    - Ignoring multilingual / code-mixed / emoji-based attacks.
+
+  - Mnemonic:
+    - Adversarial (big circle) ⊃ Jailbreak (policy violation). Injection = door. Poisoning = upstream seed. Red-team = radar.
 
 ### Deployment & MLOps
 - How to design a scalable LLM inference system?
