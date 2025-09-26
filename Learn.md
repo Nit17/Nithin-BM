@@ -492,6 +492,85 @@
 
 
 - How to monitor bias, toxicity, fairness in a GenAI app?
+
+  - Goals: detect and reduce harmful or systematically skewed outputs (toxicity, hate, stereotyping, demographic performance gaps) while preserving utility and minimizing false positives (over-refusals).
+
+  - Key dimensions:
+    - Toxicity / Hate / Harassment
+    - Violence / Self-harm encouragement
+    - Sexual content / Adult / Minors
+    - Demographic bias: disparities in tone, refusal rate, sentiment, or accuracy across groups (gender, ethnicity, age, locale, disability, religion, etc.)
+    - Stereotype & association bias: e.g., occupation ↔ demographic pairings
+    - Fairness in task performance: precision/recall/latency differences across segments
+    - Over-refusal bias: safe queries from sensitive groups incorrectly blocked more often
+
+  - Dataset strategy:
+    - Benchmark sets: RealToxicityPrompts, ToxiGen, CivilComments (for toxicity); HolisticBias / CrowS-Pairs / StereoSet (stereotypes); BOLD for open-ended generation.
+    - Synthetic augmentation: use templated or LLM-generated prompts covering intersectional groups (e.g., profession + demographic + neutral/harmful intents).
+    - Shadow traffic sampling: log real user prompts (after PII scrubbing) and stratify by intent categories.
+    - Balanced eval slices: ensure enough samples per group for statistical power; use bootstrapping for confidence intervals.
+
+  - Instrumentation & logging:
+    - Capture: prompt, model version, decoding params, context docs IDs, tool calls, final answer, refusal flag, safety scores.
+    - Tagging: infer or map demographic references (with caution)—store hashed pseudo-identifiers; track only aggregated stats to reduce privacy risk.
+    - Versioning: store policy/prompt template versions to attribute shifts.
+
+  - Metrics (per group g and overall):
+    - Toxicity rate: P(toxicity_score ≥ τ)
+    - Refusal rate & unjustified refusal rate (refused when no violation) → compare Δg vs baseline.
+    - Accuracy / relevance (for task outputs) by group; disparity = max_g − min_g or ratio.
+    - Sentiment / politeness deltas across groups.
+    - Stereotype association score: probability(model links group to stereotyped attribute) vs neutral baseline.
+    - Calibration: AUC / Brier for classifier-style outputs (if classification tasks).
+    - Utility vs safety frontier: plot toxicity rate vs answer acceptance to detect over-tuning.
+
+  - Detection models & scoring:
+    - Use ensemble: open-source classifiers (Perspective API-like models, Detoxify), LLM-as-judge (temp=0) with strict rubric, regex/keyword filters (high-precision for banned slurs).
+    - Calibrate thresholds (τ) via ROC to balance false positives; maintain separate thresholds per language domain if needed.
+    - Periodically re-score historical samples after model/policy upgrades.
+
+  - Bias analytical methods:
+    - Counterfactual evaluation: swap demographic terms ("he"→"she", group names) and measure output deltas (toxicity, sentiment, refusal change).
+    - Paired prompts (CrowS-Pairs style) comparing stereotyped vs anti-stereotyped contexts; compute log-likelihood bias score.
+    - Representation parity: embedding clustering distribution across groups (for internal embedding models).
+    - Performance gap significance: two-proportion z-test or bootstrap CIs; alert if disparity exceeds policy threshold (e.g., >5 p.p.).
+
+  - Mitigation techniques:
+    - Prompt/policy: explicit safety instructions + neutral tone style guides; require citing evidence for claims about groups.
+    - Decoding controls: lower temperature and top-p for safety-critical flows; early toxicity token blocking (constrained decoding) using a banned token trie.
+    - Post-generation filtering: cascade of fast filters → classifier → LLM rewrite (attempt detoxification) → final refuse if unresolved.
+    - Fine-tuning / preference tuning: include detoxified rewrites and counter-stereotype examples; apply group-balanced sampling; penalize toxic continuations in reward model.
+    - Representation debiasing (if controlling embeddings): iterative nullspace projection / INLP / contrastive debiasing (apply carefully—avoid erasing legitimate distinctions causing accuracy loss).
+    - Retrieval guardrails (RAG): exclude high-toxicity sources; classify retrieved chunks; mask or summarize sensitive content before prompt inclusion.
+    - Over-refusal correction: maintain a “benign sensitive” test list; if refusal rate drifts up without toxicity increase, relax policy or adjust refusal heuristics.
+
+  - Monitoring pipeline (continuous):
+    1) Ingest logs → de-identify → route to metrics computation.
+    2) Batch scoring jobs (hourly/daily) compute toxicity & fairness metrics; persist time series.
+    3) Drift detection: KS test on prompt category distribution; alert on shifts that could mask bias.
+    4) Alerting: thresholds for (a) toxicity rate spike, (b) disparity > policy limit, (c) refusal surge.
+    5) Human review queue: sample borderline or newly toxic categories for labeling.
+
+  - Governance & documentation:
+    - Maintain a Safety Model Card: model version, safety datasets, known limitations, last audit date.
+    - Change management: require fairness impact review before deploying new policies or fine-tunes.
+    - Incident response: run root-cause (data shift? classifier drift? decoding change?) and backfill metrics post-fix.
+
+  - Practical defaults (starter numbers; tune per domain):
+    - Toxicity threshold τ around 0.7 (Detoxify scale 0–1) initially; adjust to keep FP manageable.
+    - Sample 1–5% of production prompts for deep fairness analysis daily (ensure min 200 per key group/week).
+    - Disparity alert: toxicity_rate_gap > 5 p.p. or refusal_rate_ratio > 1.5× baseline.
+    - Quarterly comprehensive bias audit; monthly lightweight checkpoint.
+
+  - Pitfalls:
+    - Over-sanitization harming usefulness; metric gaming (model avoids group terms → false fairness perception); reliance on a single classifier (concept drift); ignoring intersectionality; storing raw PII in logs.
+
+  - Success criteria:
+    - Stable or reduced toxicity with preserved task accuracy.
+    - Disparity metrics within defined policy bounds over rolling windows.
+    - Fast detection/rollback (<24h) for regressions.
+    - Transparent reporting: audit logs + periodic fairness summary shared with stakeholders.
+
 - Difference between adversarial prompts and jailbreak prompts.
 
 ### Deployment & MLOps
