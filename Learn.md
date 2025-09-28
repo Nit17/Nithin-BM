@@ -945,6 +945,127 @@
    - Mnemonic: SCALE-Q → (S)peed, (C)ost, (A)fford larger context, (L)ayer sensitivity matters, (E)valuate thoroughly, (Q)uality trade-off.
 
 - Difference between online vs batch inference for LLM workloads.
+
+  - Core distinction: Online (real-time) inference serves individual requests with immediate response requirements; batch inference processes multiple inputs together, optimizing for throughput over latency. Different optimization strategies, infrastructure patterns, and cost models.
+
+  - Online inference characteristics:
+    - Request pattern: synchronous user-facing queries (chat, API calls, interactive apps) requiring <1–3s response times.
+    - Optimization goal: minimize p95/p99 latency while maintaining reasonable throughput (tokens/sec/GPU).
+    - Architecture: always-on inference servers, dynamic batching (micro-batches of 1–32 concurrent requests), request queuing with SLA timeouts.
+    - Resource usage: consistent GPU memory allocation, idle capacity for burst handling, warm model weights, KV cache retention across conversations.
+    - Scaling: horizontal (more GPU replicas) + vertical (faster GPUs/more VRAM per instance); autoscaling based on queue depth & latency SLOs.
+    - Caching: aggressive prompt/completion caching, prefix sharing, KV cache reuse to cut repeated computation.
+    - Concurrency model: async request handling, streaming responses, connection pooling, load balancing across replicas.
+
+  - Batch inference characteristics:
+    - Request pattern: offline workloads (document processing, dataset analysis, periodic reports, model evaluation) where results can wait minutes/hours.
+    - Optimization goal: maximize total throughput (tokens/hour/GPU) and minimize cost per token processed.
+    - Architecture: job queue systems (Kubernetes jobs, Airflow, SQS+Lambda), large static batches (64–512+ prompts), scheduled execution.
+    - Resource usage: burst GPU allocation during jobs, can preempt lower-priority tasks, optimize for GPU utilization % over idle time.
+    - Scaling: can use spot instances, preemptible VMs, and cheaper hardware (older GPUs, CPUs for smaller models); schedule during off-peak hours.
+    - Parallelization: data parallelism (split large batches across GPUs), pipeline parallelism (multi-stage processing), embarrassingly parallel workloads.
+    - Storage integration: direct read/write to object storage (S3, GCS), compressed input formats, result aggregation and reporting.
+
+  - Performance optimization strategies:
+    - Online optimizations:
+      - Dynamic batching: accumulate requests for 5–20ms to form mini-batches; balance latency vs throughput.
+      - Speculative decoding: draft model + verification for 1.3–2× speedup while preserving quality.
+      - KV cache management: persist conversation state, prefix sharing for system prompts, LRU eviction.
+      - Model quantization: INT8/FP8 for reduced memory + higher batch capacity.
+      - Flash attention & fused kernels: optimize attention computation and memory access patterns.
+      - Request routing: complexity-based routing (small model for simple queries, large for complex reasoning).
+    - Batch optimizations:
+      - Large static batches: pack 128–1024+ prompts with similar token lengths to minimize padding waste.
+      - Sequence packing: concatenate multiple short sequences into one batch element (with attention masks).
+      - Mixed precision: aggressive quantization (INT4) acceptable since no real-time constraints.
+      - Pipeline parallelism: overlap data loading, inference, and result writing across multiple stages.
+      - Checkpointing: save intermediate results to handle job failures and resume processing.
+      - Output streaming: write results incrementally rather than accumulating in memory.
+
+  - Infrastructure & cost patterns:
+    - Online serving:
+      - Always-on costs: 24/7 GPU reservation even during low traffic; over-provisioning for peak capacity.
+      - Premium hardware: H100/A100 for low latency, high-memory GPUs for large context windows.
+      - Multi-region: global deployment for latency optimization, cross-region failover, CDN integration.
+      - Monitoring: real-time metrics (p95 latency, error rates, queue depth), alerting, SLO tracking.
+      - Auto-scaling: responsive but conservative (avoid cold start delays); maintain warm standby capacity.
+    - Batch processing:
+      - On-demand costs: spin up resources only when jobs run; use spot/preemptible instances (50–90% cost savings).
+      - Cost-optimized hardware: older GPU generations, CPU inference for smaller models, mixed instance types.
+      - Single-region: process where data resides, minimize egress costs, leverage reserved capacity.
+      - Scheduling: run during off-peak hours, coordinate with other workloads, batch multiple datasets together.
+      - Elasticity: aggressive scaling (100s–1000s of instances), tolerate startup delays, optimize for total job completion time.
+
+  - Use case mapping:
+    - Online inference ideal for:
+      - Interactive chatbots, customer support agents, real-time content generation.
+      - API services integrating with web/mobile apps requiring <2s response times.
+      - Code completion, search query expansion, real-time translation, live transcription.
+      - Multi-turn conversations requiring state retention (KV cache) and personalization.
+      - A/B testing, canary deployments, and gradual rollouts requiring precise traffic control.
+    - Batch inference ideal for:
+      - Document corpus processing (summarization, extraction, classification of millions of files).
+      - Periodic report generation (weekly insights, monthly analyses, quarterly summaries).
+      - Dataset labeling, synthetic data generation, model evaluation on large test sets.
+      - ETL pipelines with LLM-based transformation (clean text, extract entities, enrich metadata).
+      - Research experiments, hyperparameter sweeps, fine-tuning data preparation.
+      - Compliance scanning (PII detection, policy violation checks across document repositories).
+
+  - Hybrid patterns (common in practice):
+    - Tiered serving: online for interactive, near-real-time queue for "fast batch" (results in 1–10 mins), offline batch for bulk processing.
+    - Overflow routing: online capacity exhausted → route excess traffic to batch queue with async notification.
+    - Preprocessing pipeline: batch jobs precompute embeddings/summaries → online service fetches precomputed results.
+    - Model distillation: use batch processing with large model to generate training data for faster online model.
+    - Feature engineering: batch jobs create prompt templates, retrieve context, generate training samples → online inference uses prepared inputs.
+
+  - Technology stack differences:
+    - Online serving stacks:
+      - Inference servers: vLLM, TensorRT-LLM, FasterTransformer, Triton Inference Server.
+      - Orchestration: Kubernetes (HPA, VPA), Docker Swarm, managed services (AWS SageMaker, GCP Vertex AI).
+      - Load balancing: NGINX, HAProxy, cloud load balancers with health checks and circuit breakers.
+      - Monitoring: Prometheus, Grafana, DataDog, custom metrics for tokens/sec, cache hit rates.
+    - Batch processing stacks:
+      - Job orchestration: Apache Airflow, Kubernetes Jobs, AWS Batch, Azure Batch, Google Cloud Dataflow.
+      - Data processing: Apache Spark (for large-scale preprocessing), Dask, Ray (distributed Python).
+      - Storage integration: direct S3/GCS APIs, data lake formats (Parquet, Delta Lake), streaming (Kafka, Pub/Sub).
+      - Resource management: spot fleet management, preemptible instance pools, cluster autoscalers.
+
+  - Latency vs throughput trade-offs:
+    - Online serving: prioritize consistent low latency → smaller batches, more replicas, premium hardware, aggressive caching.
+    - Batch processing: prioritize total throughput → larger batches, fewer replicas, cost-optimized hardware, minimal caching overhead.
+    - SLO examples:
+      - Online: p95 latency <800ms, availability >99.9%, burst capacity 3× baseline.
+      - Batch: complete 10K documents within 4 hours, cost <$0.50 per 1K tokens, fault tolerance with <5% job failure rate.
+
+  - Monitoring & observability:
+    - Online metrics: request latency distribution, throughput (RPS, tokens/sec), error rates, queue depth, cache hit ratios, GPU utilization.
+    - Batch metrics: job completion time, total throughput (tokens/hour), cost per token, resource utilization over time, failure/retry rates.
+    - Shared concerns: model quality drift, safety metrics (toxicity rate), resource costs, data lineage.
+
+  - Development & testing considerations:
+    - Online: staging environment mimicking production load, canary deployments, blue-green rollouts, real-time monitoring.
+    - Batch: development can use smaller sample datasets, integration testing with full pipeline, regression testing on golden datasets.
+    - Shared: version control of models/configs, reproducible builds, rollback capabilities, audit logs.
+
+  - Decision framework:
+    - Choose Online when: user-facing interaction, latency <3s required, traffic patterns unpredictable, conversation state needed, real-time feedback loops.
+    - Choose Batch when: processing existing datasets, results can wait >10 minutes, cost optimization critical, embarrassingly parallel workload, scheduled/periodic execution.
+    - Consider Hybrid when: mixed workload types, need overflow capacity, preprocessing + real-time serving, cost vs latency optimization across different user tiers.
+
+  - Common migration patterns:
+    1) Start online-only → identify batch-suitable workloads → offload to batch processing → optimize costs.
+    2) Batch-first → add online endpoint for interactive features → gradually shift more traffic online as latency requirements tighten.
+    3) Build batch foundation (data pipelines, evaluation) → add online API layer → scale online based on demand patterns.
+
+  - Cost optimization strategies:
+    - Online: right-size instance types, implement request-based autoscaling, use caching aggressively, employ model routing (small model for simple requests).
+    - Batch: maximize spot instance usage, schedule during off-peak hours, optimize batch sizes for hardware, use data-local processing.
+    - Both: monitor GPU utilization, use quantized models where quality permits, implement circuit breakers to avoid cascade failures.
+
+  - Interview summary: "Online inference optimizes for low-latency user-facing requests with always-on infrastructure, dynamic batching, and aggressive caching. Batch inference optimizes for high-throughput offline workloads using larger static batches, cost-optimized hardware, and scheduled execution. Choose based on latency requirements, traffic predictability, and cost constraints. Many production systems use hybrid approaches with tiered serving and overflow routing."
+
+  - Selection mnemonic: BOLT → (B)atch for Bulk processing, (O)nline for user Operations, (L)atency vs throughput trade-offs, (T)iered hybrid approaches.
+
 - Implement caching strategies to reduce LLM cost/latency.
 - Role of vector databases in production LLM apps (FAISS, Qdrant, Pinecone, Weaviate).
 
