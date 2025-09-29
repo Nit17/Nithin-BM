@@ -28,3 +28,39 @@ Canonicalize, Assign tiers, Control invalidation, Hit-rate monitor, Embedding/se
 
 ---
 End of Caching Strategies.
+
+---
+## Quick Reference
+- Deterministic Keys: model_id + normalized_prompt + decoding_params + context_ids.
+- Semantic Threshold: start high (≥0.92 cosine) then tune.
+- Invalidation Triggers: model/policy/version shifts, index rebuild, tool schema change.
+- Core Metrics: Hit-rate, Token Savings %, False Reuse (semantic), Latency Saved.
+
+## Common Pitfalls
+| Pitfall | Impact | Mitigation |
+|---------|--------|------------|
+| Hash drift (whitespace/order) | Hit-rate collapse | Canonical normalization pipeline |
+| Caching non-deterministic outputs | Inconsistent UX | Restrict to temp=0 / fixed sampling |
+| Stale unsafe answers post policy update | Safety regression | Versioned keys + flush policy |
+| KV cache OOM | Instability | LRU + TTL + size watermark eviction |
+| Semantic false positives | Wrong answers reused | LLM validation + high threshold |
+
+## Interview Checklist
+1. Explain semantic cache safety controls.
+2. Distinguish prefix cache vs session KV.
+3. Compute token savings & throughput uplift formula.
+4. Design cache observability dashboard.
+5. Implement stale-while-revalidate logic.
+
+## Cross-Links
+- Retrieval cache synergy: see [RAG & Agents](03-rag-agents.md#chunking-strategies).
+- Quantization memory effects: see [Quantization](06-quantization.md#deployment-patterns).
+
+## Further Reading
+- Semantic Caching blog posts (OpenAI/LangChain community)
+- HTTP cache validation concepts adapted to LLMs
+
+## Exercise
+- Outline steps to add semantic caching with guard LLM and rollback switch.
+
+---

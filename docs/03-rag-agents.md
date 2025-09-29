@@ -47,3 +47,42 @@ Evaluation: ablation tests (with/without memory) measuring accuracy, groundednes
 
 ---
 End of RAG & Agents.
+
+---
+## Quick Reference
+- RAG Loop: Query → Embed → (Hybrid Retrieve) → Re-rank → Compress → Prompt → Generate → Cite.
+- Chunk Defaults: prose 200–400 tokens, 10–20% overlap; code function-level; parent-child for context.
+- Hybrid Fusion: Weighted (normalize) or RRF; tune α on validation set.
+- Agent Memory Types: short-term, episodic, semantic, tool/cache, shared board.
+- Tool Call Loop (ReAct): Think → Act → Observe → (repeat) → Answer.
+
+## Common Pitfalls
+| Area | Pitfall | Mitigation |
+|------|---------|------------|
+| Chunking | Overlap too big → token waste | Cap at ~20%; dedupe adjacent spans |
+| Retrieval | Score scale mismatch in fusion | Normalize (z-score/min-max) pre-weighting |
+| Re-ranking | Latency explosion at large N | Cap N (e.g. 100) then k (≤10) |
+| Agents | Infinite tool loops | Max steps + loop detector |
+| Memory | Storing low-salience chatter | Salience scoring + periodic summarization |
+
+## Interview Checklist
+1. Compare MMR vs cross-encoder re-ranking roles.
+2. Design memory schema for multi-tenant agent system.
+3. Prevent prompt injection via retrieved docs—steps?
+4. Hybrid retrieval scoring normalization approach.
+5. Evaluate RAG beyond answer correctness.
+
+## Cross-Links
+- Safety aspects of retrieval: see [Evaluation & Safety](04-eval-safety.md#prompt-injection--data-poisoning).
+- Caching of retrieval & tool outputs: see [Caching](08-caching.md#layers).
+
+## Further Reading
+- ColBERT & late interaction methods
+- ReAct, Toolformer papers
+- Retrieval-Augmented Generation (Lewis et al.)
+
+## Practice Scenarios
+- Given latency SLO 150ms pre-generation, allocate budget across retrieval, re-rank, compression.
+- Convert a naive BM25 pipeline to hybrid + cross-encoder with metrics plan.
+
+---

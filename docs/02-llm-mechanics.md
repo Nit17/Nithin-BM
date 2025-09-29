@@ -59,3 +59,43 @@ When: most downstream tasks; resource-constrained or multi-tenant; prefer full F
 
 ---
 End of LLM Mechanics.
+
+---
+## Quick Reference
+- Positional Families: Sinusoidal (no params), Learned (flexible), RoPE (rotary relative), ALiBi (bias), Shaw Relative (additive).
+- Decoder-only vs Seq2Seq: single causal stack vs encoder+decoder w/ cross-attention.
+- Perplexity: exp(mean token NLL); only comparable with same tokenizer+dataset.
+- LoRA Formula: W' = W + s·B A (rank r ≪ dims). Train only A,B.
+- PEFT Menu: LoRA, Adapters, Prefix/Prompt Tuning, BitFit.
+
+## Common Pitfalls
+| Topic | Pitfall | Mitigation |
+|-------|---------|------------|
+| Positional Scaling | RoPE extrapolation failure at long context | NTK-aware scaling / interpolation |
+| Perplexity Use | Over-indexing on PPL for instruction tasks | Add task & human eval metrics |
+| LoRA Tuning | Too high rank causing overfit | Sweep r & monitor validation loss | 
+| PEFT Deployment | Adapter merge without version tagging | Tag adapter + base hash; checksum post-merge |
+| Mixed Precision | Silent overflow when forcing FP16 | Prefer BF16; monitor loss spikes |
+
+## Interview Checklist
+1. Derive why softmax(QK^T/√d) needs scaling factor.
+2. Compare relative position approaches (RoPE vs ALiBi trade-offs).
+3. When does full fine-tune beat LoRA significantly?
+4. How to detect overfitting in SFT beyond PPL?
+5. Steps to safely merge multiple LoRA adapters.
+
+## Cross-Links
+- Quantization interplay w/ LoRA: see [Quantization](06-quantization.md#interactions).
+- Memory efficiency & batching: see [Deployment & MLOps](05-deployment-mlops.md#scalable-inference-architecture-baton-craft).
+
+## Further Reading
+- RoFormer (RoPE introduction)
+- ALiBi paper & blog posts
+- LoRA original paper (Hu et al.)
+- DPO (Direct Preference Optimization)
+
+## Mini Exercises
+- Explain difference between low perplexity and good instruction adherence.
+- Given GPU VRAM constraints, outline LoRA + QLoRA setup.
+
+---

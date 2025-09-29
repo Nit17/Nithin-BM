@@ -39,3 +39,41 @@
 
 ---
 End of Evaluation & Safety.
+
+---
+## Quick Reference
+- Metrics Trio: Retrieval (Recall@k), Answer (Groundedness/Faithfulness), Safety (Refusal accuracy, Toxicity rate).
+- Hallucination Mitigation Ladder: Retrieval quality → Prompt constraints → Tool use → Decode controls → Training alignment.
+- Constitutional AI Flow: Draft → Critique → Revise → (Preference tune).
+- Safety Cascade: Heuristic filters → Classifiers → LLM Judge → (Rewrite/Refuse).
+
+## Common Pitfalls
+| Pitfall | Impact | Mitigation |
+|---------|--------|------------|
+| Single safety classifier reliance | Concept drift blind spots | Ensemble + periodic re-labeling |
+| Over-refusal | Utility loss & user frustration | Track false refusal; adjust thresholds |
+| Ignoring retrieval recall | Groundedness ceiling | Evaluate recall before answer metrics |
+| Unversioned safety prompts | Debug difficulty | Version & log prompt hashes |
+| LLM judge temperature >0 | Metric variance | Fix temp=0 & seed |
+
+## Interview Checklist
+1. Distinguish hallucination vs lack of grounding.
+2. Outline faithfulness evaluation pipeline.
+3. Compare RLHF vs Constitutional AI alignment signals.
+4. Design dashboard for live safety monitoring.
+5. Mitigate prompt injection in RAG context assembly.
+
+## Cross-Links
+- Caching interplay with safety updates: see [Caching](08-caching.md#governance).
+- Vector DB governance for poisoning: see [Vector Databases](09-vector-databases.md#ingestion--versioning).
+
+## Further Reading
+- RAGAS paper & implementation docs
+- FactCC, QAFactEval
+- Anthropic Constitutional AI blog
+- OWASP LLM Top 10
+
+## Practice Exercise
+- Create a red-team suite outline covering jailbreak, injection, bias, and hallucination probes with pass/fail criteria.
+
+---

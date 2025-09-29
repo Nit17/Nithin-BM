@@ -4,6 +4,7 @@
 The previous monolithic content has been decomposed into concise, topic-focused markdown files under the `docs/` directory for easier reading, maintenance, and extension. This file now serves purely as an index.
 
 ## Table of Contents
+0. Glossary – `docs/00-glossary.md`
 1. Core GenAI Concepts – `docs/01-core-genai.md`
 2. LLM Mechanics – `docs/02-llm-mechanics.md`
 3. RAG & AI Agents – `docs/03-rag-agents.md`
@@ -13,6 +14,7 @@ The previous monolithic content has been decomposed into concise, topic-focused 
 7. Inference Modes (BOLT) – `docs/07-inference-modes.md`
 8. Caching Strategies (CACHE-STACK) – `docs/08-caching.md`
 9. Vector Databases (VECTOR-FIT) – `docs/09-vector-databases.md`
+10. Study & Practice Roadmap – `docs/10-study-roadmap.md`
 
 ## Mnemonics Summary
 - BATON-CRAFT: Scalable inference system design.

@@ -17,3 +17,38 @@ Batch for Bulk, Online for user Operations, Latency vs throughput trade-offs, Ti
 
 ---
 End of Inference Modes.
+
+---
+## Quick Reference
+- Online: latency SLO, dynamic batching, cache heavy, smaller deterministic batches.
+- Batch: throughput/cost focus, large static batches, spot instances, sequence packing.
+- Hybrid: overflow routing, precompute heavy features, distill large → small.
+
+## Common Pitfalls
+| Pitfall | Impact | Mitigation |
+|---------|--------|------------|
+| Using online infra for batch | Wasted cost | Separate batch queue/cluster |
+| No overflow strategy | User latency spikes | Async queue & notify fallback |
+| Over-aggressive batch window online | Latency violations | Cap batching delay (e.g. 10–20 ms) |
+| Ignoring packing inefficiency | Token waste | Length-bucket & pack sequences |
+| Missing cost attribution | Blind optimization | Per-endpoint token & $ metrics |
+
+## Interview Checklist
+1. Design metrics to decide routing online vs batch.
+2. Sequence packing vs dynamic batching—differences.
+3. Overflow handling when GPU saturation occurs.
+4. Precompute opportunities for hybrid system.
+5. Cost reduction levers for batch cluster.
+
+## Cross-Links
+- Speculative decoding: see [Deployment & MLOps](05-deployment-mlops.md#scalable-inference-architecture-baton-craft).
+- Token savings via caching: see [Caching](08-caching.md#metrics).
+
+## Further Reading
+- vLLM / TensorRT-LLM batching docs
+- Ray Serve & Kubernetes batch job patterns
+
+## Exercise
+- Create a decision flow to classify a request into online vs fast-batch vs offline.
+
+---

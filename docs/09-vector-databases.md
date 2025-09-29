@@ -58,3 +58,40 @@ Recall@10 ≥0.9 baseline; p95 <50–80 ms; ingestion lag p95 <60 s; memory over
 
 ---
 End of Vector Databases.
+
+---
+## Quick Reference
+- Index Selection: HNSW (versatile), IVF-PQ (memory save), Flat (small set), DiskANN (billion+), ColBERT (late interaction granularity).
+- Retrieval Pipeline: Sparse + Dense → Merge → Re-rank → MMR → Compress.
+- Migration: Dual-write old+new embeddings → shadow eval → alias swap.
+- Key Metrics: Recall@k, nDCG@k, p95 latency, ingestion lag, memory overhead factor.
+
+## Common Pitfalls
+| Pitfall | Impact | Mitigation |
+|---------|--------|------------|
+| Embedding model upgrade without re-index | Recall collapse | Dual index + shadow eval |
+| Over-chunking tiny fragments | Poor semantic cohesion | Minimum chunk size & hierarchical approach |
+| Ignoring drift | Silent relevance decay | Nightly recall & centroid drift job |
+| Excessive nprobe/ef_search chasing 1% | Latency spike | Stop at recall plateau curve |
+| No deletion mapping | Compliance failure | Maintain doc_id → vector_ids map |
+
+## Interview Checklist
+1. Choose index for 300M docs, moderate updates, low-latency requirement.
+2. Design recall regression harness.
+3. Hybrid fusion weighting method.
+4. Strategy to reduce storage 4× with minimal recall hit.
+5. Guarantee fresh content visible <60s after ingest.
+
+## Cross-Links
+- Poisoning & safety: see [Evaluation & Safety](04-eval-safety.md#prompt-injection--data-poisoning).
+- Caching integration: see [Caching](08-caching.md#layers).
+
+## Further Reading
+- HNSW paper, DiskANN
+- ColBERT v2
+- FAISS wiki & PQ tutorials
+
+## Exercise
+- Provide an index parameter tuning plan for scaling from 10M → 100M vectors.
+
+---

@@ -18,3 +18,42 @@ Migration phases: log & label → PEFT fine-tunes → staging benchmarks → can
 
 ---
 End of Deployment & MLOps.
+
+---
+## Quick Reference
+- Pipeline Core: Gateway → Router/Batcher → Retrieval/Context → Inference (speculative) → Safety → Post-process → Metrics.
+- Performance Levers: Batching, Speculative Decoding, Quantization, KV Sharing, FlashAttention.
+- Reliability Ladder: Fallback model → Reduce max tokens → Disable speculative → Queue shedding.
+- Cost Levers: Model routing, quant tiers, cache hit %, utilization tuning.
+- Decision (FACTORS): Fine-tune depth, Annual volume, Compliance, Talent, Observability, Routing complexity, Sensitivity.
+
+## Common Pitfalls
+| Pitfall | Effect | Mitigation |
+|---------|--------|------------|
+| Ignoring queue wait | Underestimates latency | Separate queue vs compute metrics |
+| Static batch size | Inefficient GPU use | Dynamic micro-batching window |
+| No model routing | Overpay for simple queries | Complexity classifier + tiered models |
+| Stale caches after deploy | Wrong / unsafe answers | Cache versioning & invalidation hooks |
+| Lack of golden set | Silent regressions | Block deploy on threshold failures |
+
+## Interview Checklist
+1. Explain speculative decoding mechanics & acceptance criteria.
+2. Design autoscaling signals (which metrics?).
+3. Strategy for multi-model routing & fallback.
+4. Observability suite essentials for LLM API.
+5. Migration from managed to hybrid hosting—phases.
+
+## Cross-Links
+- Quantization tiers: see [Quantization](06-quantization.md#deployment-patterns).
+- Caching layers: see [Caching](08-caching.md#layers).
+
+## Further Reading
+- vLLM architecture notes
+- Speculative Decoding (LLM.int8() / Medusa / Recurrent Draft)
+- FlashAttention papers
+- Service Level Objective (SRE) best practices
+
+## Scenario Exercise
+- Given 2× latency spike p95 with unchanged compute time, list 5 likely root causes & diagnostics.
+
+---

@@ -80,3 +80,43 @@
 
 ---
 End of Core GenAI Concepts.
+
+---
+## Quick Reference Cheat Sheet
+- Generative vs Discriminative: p(x)/p(x,y) vs p(y|x); sample vs classify.
+- Transformer Block: (Multi-Head Self-Attention + FFN) with residual + LayerNorm.
+- Tokenization Choice: BPE (deterministic) vs SentencePiece Unigram (probabilistic, better multilingual).
+- Training Stack: Pre-train → (Optional continual) → SFT → Instruction Tuning → Preference (RLHF/DPO) → PEFT adapter specialization.
+- Embedding Retrieval Loop: Chunk → Embed → Index → Query Embed → ANN Search → (Hybrid fuse) → (Re-rank) → Prompt.
+
+## Common Pitfalls
+| Area | Pitfall | Mitigation |
+|------|---------|------------|
+| Tokenization | Excessive sequence length blow-up | Inspect avg tokens/char; switch model or adjust pre-tokenization |
+| Chunking | Too large: recall loss; too small: fragmented context | Grid search size & overlap; hierarchical strategy |
+| Fine-Tuning | Catastrophic forgetting | Mix a small slice of general data; regularization |
+| Embeddings | Mixed model versions in one index | Version field + dual-write migration |
+| Evaluation | Comparing perplexity across tokenizers | Always fix tokenizer/dataset; report both |
+
+## Interview Checklist
+1. Explain transformer attention math succinctly.
+2. Distinguish BPE vs SentencePiece and when to prefer each.
+3. Outline full adaptation pipeline (pre-train → instruction → preference → PEFT).
+4. Describe how embeddings power RAG and recall metrics used.
+5. Give pros/cons of hierarchical chunking vs flat.
+
+## Cross-Links
+- LoRA & PEFT details: see [LLM Mechanics](02-llm-mechanics.md#lora-low-rank-adaptation).
+- Retrieval diversification & re-ranking: see [RAG & Agents](03-rag-agents.md#re-ranking-models).
+- Groundedness metrics: see [Evaluation & Safety](04-eval-safety.md#hallucination--groundedness).
+
+## Further Reading
+- Attention Is All You Need (Vaswani et al.)
+- SentencePiece: A simple and language independent subword tokenizer
+- Chinchilla Scaling Laws (Hoffmann et al.)
+
+## Practice Prompts
+- “Why does Unigram tokenization sometimes produce fewer tokens than BPE?”
+- “Design a chunking strategy for legal contracts (multi-level sections).”
+
+---
