@@ -1067,6 +1067,135 @@
   - Selection mnemonic: BOLT → (B)atch for Bulk processing, (O)nline for user Operations, (L)atency vs throughput trade-offs, (T)iered hybrid approaches.
 
 - Implement caching strategies to reduce LLM cost/latency.
+
+  - Why caching matters: LLM inference cost & latency scale with total tokens processed. Many requests contain repeated prefixes (system prompt, boilerplate instructions, earlier conversation turns) or ask for identical/semantically-similar outputs. Strategic caching reduces recomputation, cuts GPU time, improves p95 latency, and provides resilience during load spikes.
+
+  - Caching layers (top to bottom):
+    1) Request / Prompt Hash Cache (full completion cache)
+       - Key: hash(model_id + normalized_system_prompt + user_prompt + decoding_params + retrieval_context_ids)
+       - Value: final completion (stream reconstructed) + metadata (tokens, safety flags, timestamp, model_version)
+       - Use when: strict idempotent queries (e.g., FAQ, deterministic temperature=0 inference) recur.
+    2) Prefix / Partial Prompt Cache
+       - Store logits or KV cache for common prefixes (system prompt, policy preamble, chain-of-thought scaffolds) → skip re-processing those tokens.
+       - Key: hash(prefix_tokens, model_version)
+       - Value: serialized KV states (per layer key/value tensors) or compressed representation.
+       - Benefit: significant for long static preambles; reduces first-token latency.
+    3) KV Cache (per session / conversation)
+       - Maintains previously processed tokens' keys/values for fast continuation without re-encoding history.
+       - Strategies: sliding window, summarization beyond length threshold, hierarchical memory (recent full + summarized older turns).
+    4) Retrieval Layer Cache
+       - Caches embedding vectors for documents & queries (content_hash → embedding).
+       - Caches retrieval results (query_hash → top-k doc_ids) with short TTL; helpful for repeated user revisions or multi-turn clarifications.
+    5) Embedding Ingestion Cache
+       - Deduplicate documents by content hash before embedding to avoid re-paying for unchanged content.
+    6) Rerank Cache
+       - Cache reranker scores for (query_id, doc_id) pairs; update when model/reranker version changes.
+    7) Tool / Function Result Cache
+       - Expensive deterministic tool calls (e.g., DB aggregation, API metadata) cached by argument signature → reduce tool latency inside agent loops.
+    8) Post-Processing / Formatting Cache
+       - Deterministic transformations (citation formatting, JSON validation) cached to avoid re-running heavy regex/parse logic.
+
+  - Key design principles:
+    - Determinism first: only cache when decoding params (temperature, top_p, presence penalty) guarantee deterministic output (typically temperature=0 & fixed seed). For non-deterministic, consider semantic caching.
+    - Normalization: canonicalize whitespace, trim trailing spaces, stable ordering of retrieved chunk IDs, sort tool outputs before hashing.
+    - Versioning: include model_version, policy_version, safety_pipeline_version in cache key to avoid stale or unsafe reuse.
+    - Data segregation: multi-tenant keys prefixed with tenant_id to prevent cross-customer leakage.
+    - TTL & invalidation: shorter TTL for content that can drift (retrieval results); longer for static system prompts.
+    - Size vs hit-rate trade-off: track marginal benefit curve; evict layers that add complexity without meaningful hit-rate.
+
+  - Semantic caching (advanced):
+    - Idea: approximate match new query against cached queries using embedding similarity (cosine ≥ threshold) → reuse answer if within policy.
+    - Flow: embed incoming normalized prompt → ANN search over prior prompt embeddings → candidate answers → optional re-validation (LLM judge: "Is response still valid?").
+    - Benefits: high reuse for paraphrased FAQs or support queries.
+    - Risks: false positives (wrong answer reused) → mitigate with strict similarity threshold + domain constraints.
+    - Metrics: semantic hit-rate, incorrect reuse rate (manual/labeled), average latency saved.
+
+  - KV cache reuse & pooling:
+    - Reuse across conversations with identical starting system prompt & initial instructions (prefix sharing): process prefix once, clone KV states for each new request (copy-on-write memory mapping).
+    - Memory management: LRU or LFU on per-session KV blocks; compress or discard least recent on pressure.
+    - Streaming sessions: early eviction of concluded sessions; configurable TTL (e.g., 5–15 min inactivity).
+
+  - Invalidation triggers:
+    - Model upgrade (weights, tokenizer change) → purge all caches referencing previous version.
+    - Policy / system prompt change → purge prefix + prompt caches; KV caches partially invalid (prefix mismatch).
+    - Safety rule update → recompute safety metadata or flush impacted entries.
+    - Document re-index (RAG) → invalidate retrieval result cache keyed by changed doc_ids.
+    - Tool schema change → drop tool result cache entries referencing outdated schema.
+
+  - Metrics & formulas:
+    - Prompt cache hit-rate = hits / (hits + misses) (report separately for exact vs semantic).
+    - Latency saved = Σ_over_hits( (baseline_latency - cache_latency) ).
+    - GPU token savings = Σ_over_hits( generated_tokens_skipped + prefix_tokens_reused ).
+    - Cost reduction % ≈ (token_savings / total_tokens_without_cache) × 100.
+    - Effective throughput gain ≈ 1 / (1 - token_savings_fraction) (approximation ignoring overhead).
+
+  - Observability:
+    - Log: cache layer (prompt/prefix/KV/semantic), key hash (truncated), hit/miss, age, size, eviction reason.
+    - Dashboards: per-layer hit-rate, memory utilization, eviction churn, tail latency with & without cache (A/B sampling), semantic reuse error rate.
+    - Alerts: sudden drop in hit-rate (possible key drift), spike in evictions (capacity issue), semantic false reuse anomalies.
+
+  - Security & privacy:
+    - Never cache prompts containing disallowed PII unless encrypted & policy-approved.
+    - Encrypt at rest if multi-tenant and contains user data; consider hashing answers for duplicate detection without storing raw text where not needed.
+    - Redact secrets before caching; ensure system prompt not exposed via semantic cache retrieval UI.
+
+  - Capacity planning:
+    - Distinguish hot vs warm: hot (~last 15–30 min) in-memory (Redis / in-process), warm (hours–days) in distributed cache, cold (historical) optionally in object store for analytics.
+    - Use approximate LFU for large caches (Redis allkeys-lfu) to retain frequently reused prompts.
+    - Partition by model_id to prevent large-model traffic dominating small-model cache.
+
+  - Example key schemas:
+    - Exact prompt: sha256("v1|model=llama-70b|temp=0|sys=abc123|ctx=doc1,doc5|user=...normalized...").
+    - Prefix KV: sha256("kv|model=llama-13b|layers=0-31|tokens=1024|sys=abc123").
+    - Semantic: ANN index id (uuid) → {prompt_embedding, truncated_prompt, answer_ref_id}.
+    - Retrieval result: sha1("retrieval|index=v2|query=...normalized...|topk=20").
+
+  - Deployment patterns:
+    - Write-through: store result immediately after generation (if deterministic conditions met).
+    - Write-back (delayed): stage answers, run safety/quality validation asynchronously, then commit to cache.
+    - Stale-while-revalidate: serve cached answer quickly, trigger background refresh if TTL expired.
+    - Two-tier: local node in-process LRU (low latency) → distributed Redis/Memcached → optional object store archive.
+
+  - Interplay with other optimizations:
+    - Batching: high cache hit-rates reduce variance in per-request token counts → more stable batch packing.
+    - Speculative decoding: fewer tokens to generate reduces benefit margin; monitor acceptance rate shifts.
+    - Quantization: smaller weight size speeds cold misses; caching reduces frequency of long runs.
+    - RAG: retrieval result & embedding caches reduce upstream latency, enabling tighter overall SLOs.
+
+  - Pitfalls:
+    - Over-caching dynamic questions (time-sensitive) → stale responses (need freshness policies / TTL by intent type).
+    - Hash drift due to subtle prompt template changes (whitespace, ordering) → plummeting hit-rate.
+    - Ignoring decoding params (temperature differences) → returning inconsistent style vs expectation.
+    - Semantic cache leakage: approximate match returns similar but contextually wrong answer → quality erosion.
+    - Excessive memory use for KV caches causing GPU OOM; need proactive eviction heuristics (size watermark triggers).
+    - Not re-evaluating safety filters on served cached answers after safety policy updates.
+
+  - Governance & quality control:
+    - Periodic sample audit of cache hits (compare with fresh generation) to detect drift.
+    - Cache A/B: route small % of cache-eligible requests to bypass to measure true savings and quality delta.
+    - Maintain cache schema version; migrate or purge on major structural change.
+
+  - Step-by-step implementation (incremental roadmap):
+    1) Instrumentation: log normalized prompt & tokens generated; compute theoretical repeats.
+    2) Add deterministic prompt hash cache (temp=0) with basic LRU + 1h TTL; measure hit-rate.
+    3) Introduce prefix/KV sharing for static system prompt; benchmark first-token latency reduction.
+    4) Add retrieval result cache (short TTL 30–120s) for multi-turn refinement flows.
+    5) Layer semantic cache (high similarity threshold ≥0.92 cosine) for FAQ / support domain; add guard LLM for validation.
+    6) Add per-layer dashboards & alerts; establish rollback toggle.
+    7) Optimize memory & eviction policies; tune thresholds; implement stale-while-revalidate.
+
+  - Metrics targets (example initial):
+    - Exact prompt hit-rate ≥ 15% after warm-up (domain dependent).
+    - Prefix/KV reuse saves ≥ 20% first-token latency.
+    - Retrieval cache reduces median retrieval latency by ≥ 30%.
+    - Overall GPU token savings ≥ 25% for FAQ/support traffic, ≥ 10% general.
+    - Semantic incorrect reuse rate < 1% (audited sample).
+
+  - Interview summary:
+    - "Layer caching: (1) exact prompt, (2) prefix/KV, (3) retrieval results & embeddings, (4) tool outputs, (5) semantic approximate for paraphrases. Key design: deterministic hashing, versioned keys, TTL & invalidation on model/policy/content changes, multi-tier storage (in-process → Redis → object store), monitoring hit-rate & token savings. Risks are stale or incorrect reuse (semantic), safety drift, and memory pressure from KV states. Roadmap starts with deterministic prompt cache then adds prefix & retrieval before semantic."
+
+  - Mnemonic: CACHE-STACK → (C)anonicalize, (A)ssign tiers, (C)ontrol invalidation, (H)it-rate monitor, (E)mbedding/semantic layer – (S)tale-while-revalidate, (T)oken savings metrics, (A)udit samples, (C)apacity planning, (K)V optimization.
+
 - Role of vector databases in production LLM apps (FAISS, Qdrant, Pinecone, Weaviate).
 
 ---
