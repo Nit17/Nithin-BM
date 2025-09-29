@@ -1,15 +1,15 @@
 
 ## 2. System Design & Scenario Questions
-- Design an enterprise chatbot integrating 25+ REST APIs.
-- Build a GenAI-powered personal assistant with speech-to-text → LLM → text-to-speech while keeping latency low.
-- Design a multi-cloud RAG pipeline (AWS Bedrock + Azure AI Search).
-- Mitigate hallucinations in financial data GenAI apps.
-- Integrate real-time analytics dashboards (PowerBI + AI Copilot) with LLM pipelines.
-- Water quality prediction system with ML + GenAI report generation.
-- Implement human-in-the-loop feedback to improve LLM answers.
-- On-premise LLM deployment: hardware, software, MLOps considerations.
-- Decide between full fine-tuning vs adapters/LoRA.
-- Secure integration of enterprise documents (PII, compliance, RBAC).
+- [Design an enterprise chatbot integrating 25+ REST APIs.](system-design/enterprise-chatbot-25-apis/README.md)
+- [Build a GenAI-powered personal assistant with speech-to-text → LLM → text-to-speech while keeping latency low.](system-design/personal-assistant-voice/README.md)
+- [Design a multi-cloud RAG pipeline (AWS Bedrock + Azure AI Search).](system-design/multi-cloud-rag/README.md)
+- [Mitigate hallucinations in financial data GenAI apps.](system-design/financial-hallucination-mitigation/README.md)
+- [Integrate real-time analytics dashboards (PowerBI + AI Copilot) with LLM pipelines.](system-design/analytics-integration-llm/README.md)
+- [Water quality prediction system with ML + GenAI report generation.](system-design/water-quality-ml-genai/README.md)
+- [Implement human-in-the-loop feedback to improve LLM answers.](system-design/human-in-loop-feedback/README.md)
+- [On-premise LLM deployment: hardware, software, MLOps considerations.](system-design/on-prem-llm-deployment/README.md)
+- [Decide between full fine-tuning vs adapters/LoRA.](system-design/full-finetune-vs-adapters/README.md)
+- [Secure integration of enterprise documents (PII, compliance, RBAC).](system-design/secure-doc-integration/README.md)
 
 ---
 
