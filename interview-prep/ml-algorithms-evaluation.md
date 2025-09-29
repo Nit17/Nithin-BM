@@ -257,3 +257,21 @@ Include: purpose, data lineage, feature list, training date, validation metrics,
 "Beyond baseline metrics, I enforce calibration, fairness, drift detection, and statistically grounded model comparisons—treating evaluation as an ongoing governance process, not a one-time leaderboard exercise."
 
 <!-- Original soundbite replaced by extended version above -->
+
+## 22. Curated Reading & References
+| Topic | Reference | Key Takeaway |
+|-------|----------|--------------|
+| Logistic Regression Convergence | Bishop PRML Ch.4 | Gradient behavior & convexity |
+| Boosting Theory | Friedman (2001) | Additive modeling as stagewise optimization |
+| Calibration | Guo et al. 2017 | Modern nets miscalibrated; temperature scaling simple fix |
+| Fairness Metrics | Hardt et al. 2016 | Equalized odds concept |
+| Drift Detection | Gama et al. Survey | Types of concept drift |
+| Ranking Metrics | Jarvelin & Kekalainen | NDCG formalism |
+| Propensity Scoring in Ranking | Joachims papers | Debias clicks |
+| SHAP | Lundberg & Lee | Unified additive explanations |
+| Model Risk | SR 11-7 (Reg guidance) | Governance requirements |
+| Evaluation Best Practices | Google Rules of ML | Simplify before complex |
+
+## 23. Reading Progress Tracker
+| Reference | Date Started | Date Finished | Notes / Insights |
+|-----------|--------------|---------------|------------------|

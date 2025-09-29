@@ -39,6 +39,34 @@ Central hub for structured preparation across mandatory and optional competencie
 - RAG & system design scenarios live under `system-design/`.
 - Core GenAI concepts in `docs/01-core-genai.md` etc.
 
+## Recommended Reading Paths
+| Goal | Sequence |
+|------|----------|
+| Rapid ML refresh (1 day) | competency-matrix → ml-algorithms-evaluation (sections 1–5) → data-feature-engineering (1–5) → python-advanced (1–6) |
+| Deep model craft (week) | model-development-frameworks → ml-algorithms-evaluation (math + tuning) → data-feature-engineering (pipelines + leakage) → deployment-integration |
+| Production readiness | deployment-integration → mlops-tools-frameworks → documentation-best-practices → analytical-problem-solving |
+| System design narrative | system-design/* READMEs → advanced-ai-domains → cheat-sheets |
+| Interview storytelling | communication-collaboration → agile-teamwork → competency-matrix evidence fill |
+
+## External Reading (Non-Exhaustive)
+| Topic | Source Type | Reference |
+|-------|------------|-----------|
+| Gradient Boosting | Paper | Friedman: Greedy Function Approximation |
+| Calibration | Paper | Guo et al. (On Calibration of Modern Neural Networks) |
+| Drift Detection | Article | Evidently blog: data & concept drift |
+| Feature Stores | Blog | Uber Michelangelo / Feast docs |
+| ML System Design | Book | Chip Huyen: Designing Machine Learning Systems |
+| Testing ML | Article | Google: Rules of ML |
+| Serving Optimization | Blog | vLLM / TensorRT-LLM architecture posts |
+| Fairness Metrics | Paper | Hardt et al. Equality of Opportunity |
+| Ranking Diversity | Paper | Carbonell & Goldstein MMR |
+| Data Contracts | Blog | Monte Carlo / Data Contracts concept |
+
+## Reading Cadence Suggestion
+- Daily (30m): one focused section + flash review of previous notes.
+- Weekly: summarize new insights in personal log to combat forgetting.
+- After mock interview: map misses to specific file sections; schedule revisit.
+
 ## Progress Tracking
 Add a personal log section below to mark readiness (% confidence) per module.
 

@@ -139,3 +139,40 @@ def flatten(list_of_lists: Iterable[Iterable[T]]) -> Iterator[T]:
 
 ## 12. Interview Soundbite
 "I leverage Python’s iterator/generator protocol and functional constructs to build memory-efficient, composable data pipelines; decorators and context managers encapsulate cross-cutting concerns like retries, timing, and resource safety."
+
+## 13. Suggested Deep Reading
+| Area | Reference | Why |
+|------|----------|-----|
+| Iteration Protocol | Python Docs (Data Model) | Internal mechanics (__iter__/__next__) |
+| Generators & Coroutines | PEP 342 / 380 | Understanding send/throw/yield from |
+| Asyncio Event Loop | Python Docs / Trio blog | Concurrency model limits |
+| Typing & Gradual Types | PEP 484 / mypy docs | Static analysis leverage |
+| Performance | PyPy vs CPython blog | Interpreter tradeoffs |
+
+## 14. Extended Practice Prompts
+1. Build a generic retry/backoff decorator supporting async + sync functions.
+2. Profile a slow ETL script; refactor using generators + itertools.
+3. Implement a context manager that captures stdout and restores it.
+4. Create an async rate limiter (tokens per second) using asyncio primitives.
+5. Write a caching layer with time-based invalidation using functools.lru_cache + wrapper.
+
+## 15. Memory & Object Model Snapshot
+- Small integer caching; string interning implications.
+- Reference counting + cyclic GC generation thresholds.
+- sys.getsizeof vs true container footprint.
+
+## 16. Concurrency Pitfalls
+| Pitfall | Explanation | Mitigation |
+|---------|------------|-----------|
+| Shared mutable state | Race conditions under threads | Use locks / immutability |
+| Blocking sync I/O in async | Event loop stalls | Use aiohttp / run_in_executor |
+| Oversubscription CPU | Excess processes thrash | Bound process pool size |
+
+## 17. Quick Links
+| Topic | Link (doc keyword) |
+|-------|--------------------|
+| Data Model | "Python data model" |
+| Contextlib | "contextlib docs" |
+| Asyncio | "asyncio event loop" |
+| Typing | "mypy cheat sheet" |
+| Profiling | "cProfile tutorial" |

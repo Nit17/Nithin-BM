@@ -32,6 +32,38 @@
 ## Readiness Thresholds
 - Apply only when all Mandatory ≥4 and at least 3 optional ≥3.
 
+## Rubric Guidelines
+| Rating | Definition | Evidence Examples |
+|--------|-----------|------------------|
+| 1 | Aware only | Can define term minimally |
+| 2 | Emerging | Can follow existing pattern with guidance |
+| 3 | Proficient | Implements independently; explains tradeoffs |
+| 4 | Advanced | Optimizes, debugs subtle issues, mentors others |
+| 5 | Expert | Designs novel solutions; sets org standards |
+
+Promotion Readiness: Majority Mandatory at 4, at least two at 5 indicating spikes.
+
+## Sample Question Mapping
+| Skill | Sample Interview Questions |
+|-------|----------------------------|
+| Python Advanced | Explain iterator vs generator; implement custom context manager |
+| Feature Engineering | Prevent leakage in target encoding? Design real-time vs offline feature sync |
+| Evaluation & Metrics | Pick metric for extreme imbalance; calibrate probabilities |
+| Deployment | How to blue/green a model API? Add canary shadowing |
+| MLOps Tooling | Track lineage and metrics across retrains? |
+| Communication | STAR story on reducing inference latency |
+| Data Handling | Memory-optimize 10GB CSV ingest |
+| Debugging | Diagnose sudden AUC drop after schema change |
+
+## Reading References Per Skill
+| Skill | Primary File Section | External Anchor |
+|-------|----------------------|----------------|
+| Evaluation | ml-algorithms-evaluation (5,14,15) | Calibration paper; fairness metrics |
+| Feature Eng | data-feature-engineering (1–7,10) | Feature store blog |
+| Deployment | deployment-integration (forthcoming) | FastAPI / K8s docs |
+| Python | python-advanced (1–10) | Fluent Python (book) |
+| MLOps | mlops-tools-frameworks (planned) | MLflow / Kubeflow docs |
+
 ## Improvement Log (Append Below)
 | Date | Skill | Action Taken | Impact |
 |------|-------|--------------|--------|

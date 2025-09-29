@@ -114,3 +114,58 @@ model = Pipeline([
 
 ## 13. Interview Soundbite
 "I design reproducible, leakage-safe feature pipelines with memory-optimized ingestion, rigorous validation, and monitoring to sustain model performance over time."
+
+## 14. Advanced Encodings & Representations
+| Technique | Use Case | Note |
+|-----------|---------|------|
+| Target Mean Smoothing | High-cardinality categories | Avoid overfit with prior blending |
+| Weight of Evidence | Credit scoring | Monotonic relationship |
+| Hashing Trick | Very high cardinality | Collision tradeoff |
+| Entity Embeddings | Deep models for categories | Requires sufficient data |
+| Count Vectorization | Text sparse bag-of-words | Pair with TF-IDF scaling |
+
+## 15. Drift Detection for Features
+| Level | Method | Trigger |
+|-------|--------|--------|
+| Distribution | PSI / KS Test | PSI > 0.2 |
+| Correlation structure | Correlation delta | |ρ_old - ρ_new| > threshold |
+| Importance shift | Top-k feature set diff | Jaccard < 0.6 |
+
+## 16. Fairness in Feature Engineering
+Remove or transform sensitive proxies (e.g., zip → socio-economic risk). Use counterfactual testing: perturb sensitive attribute, observe prediction delta.
+
+## 17. Data Contract Template
+| Field | Required | Example |
+|-------|----------|---------|
+| name | yes | transaction_amount |
+| type | yes | float64 |
+| nullable | yes | false |
+| semantic | yes | currency_USD |
+| constraints | optional | >= 0 |
+| pii | optional | false |
+| update_frequency | yes | daily |
+
+## 18. Extended Practice
+6. Implement feature drift dashboard using PSI.
+7. Encode 1M-row high-cardinality categorical feature efficiently.
+8. Build entity embedding training loop for users/products.
+9. Propose fairness test on engineered demographic features.
+10. Design data contract for streaming click events.
+
+## 19. Reading List
+| Topic | Reference | Why |
+|-------|-----------|-----|
+| Feature Stores | Feast / Uber Michelangelo | Operational feature reuse |
+| High-Cardinality Encoding | Kaggle discussions | Practical tradeoffs |
+| Drift Monitoring | Evidently AI docs | Production reliability |
+| Data Contracts | Industry blogs | Stability & governance |
+| Entity Embeddings | Guo & Berkhahn (Wide & Deep) | Representation learning |
+
+## 20. Quick Reference
+| Need | Action |
+|------|--------|
+| Memory spike | Downcast + sparse representation |
+| Imbalance | Adjust class weights before oversampling |
+| Leakage suspicion | Re-run CV with stricter temporal split |
+| Drift found | Quantify impact → decide recalibration/retrain |
+| High-cardinality | Try hashing → monitor collision rate |
