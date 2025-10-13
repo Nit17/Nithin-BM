@@ -1,6 +1,5 @@
 """Top-k Retriever Exercise
 
-
 Problem: Return top-k docs by score.
 Focus: algorithmic complexity tradeoff (sort vs heap).
 Complexity: sort O(n log n) or heap O(n log k).
